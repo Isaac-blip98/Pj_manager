@@ -1,0 +1,53 @@
+### Base URL Configuration
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Variables for testing
+@userId = 1
+@userEmail = test@example.com
+@userPassword = password123456
+
+### CREATE USER
+POST {{baseUrl}}/users
+Content-Type: {{contentType}}
+
+{
+  "name": "John Doe",
+  "email": "{{userEmail}}",
+  "password": "{{userPassword}}",
+  "roleId": "USER"
+}
+
+### 2. CREATE ADMIN USER
+POST {{baseUrl}}/users
+Content-Type: {{contentType}}
+
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "admin123456",
+  "roleId": "ADMIN"
+}
+
+### 4. GET ALL USERS
+GET {{baseUrl}}/users
+
+
+### 9. GET USERS BY ROLE - USER
+GET {{baseUrl}}/users/role/USER
+
+### 10. GET USERS BY ROLE - ADMIN
+GET {{baseUrl}}/users/role/ADMIN
+
+### 12. GET SINGLE USER BY ID
+GET {{baseUrl}}/users/{{userId}}
+
+### 14. UPDATE USER
+PATCH {{baseUrl}}/users/{{userId}}
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smith@example.com"
+}
