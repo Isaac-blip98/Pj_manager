@@ -1,0 +1,44 @@
+### CREATE USER
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "email": "janedoe@gmail.com",
+  "password": "hjdj9589",
+  "role": "USER"
+}
+
+### 2. CREATE ADMIN USER
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "admin123456",
+  "role": "ADMIN"
+}
+
+### 4. GET ALL USERS
+GET http://localhost:3000/users
+
+
+### 9. GET USERS BY ROLE - USER
+GET http://localhost:3000/users/role/USER
+
+### 10. GET USERS BY ROLE - ADMIN
+GET http://localhost:3000/users/role/ADMIN
+
+### 12. GET SINGLE USER BY ID
+GET http://localhost:3000/users/76122294-4672-4235-a24e-11fea07ea405
+
+### 14. UPDATE USER
+PATCH http://localhost:3000/users/76122294-4672-4235-a24e-11fea07ea405
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smithgmail.com"
+}
