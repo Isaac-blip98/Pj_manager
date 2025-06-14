@@ -1,0 +1,23 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const tabButtons = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
+    const forms = document.querySelectorAll<HTMLFormElement>('.auth-forms form');
+
+    tabButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+
+            tabButtons.forEach((button) => button.classList.remove('active'));
+            btn.classList.add('active');
+
+            const tab = btn.dataset.tab;
+            if (!tab) return;
+
+            forms.forEach((form) => {
+                if (form.id === `${tab}Form`) {
+                    form.classList.add('active');
+                } else {
+                    form.classList.remove('active');
+                }
+            });
+        });
+    });
+});

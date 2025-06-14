@@ -6,7 +6,6 @@ export class UserResponseDto {
   email!: string;
   profileImage?: string | null;
   role!: UserRole;
-  // emailStatus!: EmailStatus;
   isActive!: boolean;
   createdAt!: Date;
   updatedAt!: Date;
