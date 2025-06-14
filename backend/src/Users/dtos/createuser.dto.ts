@@ -5,17 +5,17 @@ import {
   IsOptional,
   IsEnum,
   MinLength,
-  MaxLength
+  MaxLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { UserRole } from "@prisma/client";
+import { UserRole } from '@prisma/client';
 
-export class CreateUserDto{
- @IsString({message: 'Name must be a string'})
- @IsNotEmpty({message: 'Name is required'})
- @MinLength(2, {message: 'Name must be atleast 2 characters'})
- @MaxLength(50, {message: 'Name must be atmost 50 characters'})
- name: string = '';
+export class CreateUserDto {
+  @IsString({ message: 'Name must be a string' })
+  @IsNotEmpty({ message: 'Name is required' })
+  @MinLength(2, { message: 'Name must be atleast 2 characters' })
+  @MaxLength(50, { message: 'Name must be atmost 50 characters' })
+  name: string = '';
 
   @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsNotEmpty({ message: 'Email is required' })
@@ -28,7 +28,8 @@ export class CreateUserDto{
   password: string = '';
 
   @IsOptional()
-  @IsEnum(UserRole,  {message: `Role must be one of: ${Object.values(UserRole).join(', ')}`,})
+  @IsEnum(UserRole, {
+    message: `Role must be one of: ${Object.values(UserRole).join(', ')}`,
+  })
   roleId?: UserRole;
-
 }

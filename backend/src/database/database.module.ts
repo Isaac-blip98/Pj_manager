@@ -1,5 +1,6 @@
 import { Module, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UserRole } from '@prisma/client';
 
 @Module({
   providers: [PrismaService],
@@ -15,14 +16,13 @@ export class DatabaseModule implements OnModuleInit {
       const adminExists = await this.prisma.user.findFirst({
         where: {
           email: 'markndwiga@gmail.com',
-          role: {
-            name: 'ADMIN',
-          },
+          role: UserRole.ADMIN,
         },
         include: {
-          role: {
-            include: {
-              permissions: true,
+          assignedProject: {
+            select: {
+              id: true,
+              name: true,
             },
           },
         },

@@ -1,0 +1,122 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNjY3NWNhNS01YjQ2LTQzMWEtYjBlNy02MzZmYTA1OWEyNDAiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NDk4OTIzOTEsImV4cCI6MTc0OTk3ODc5MX0.5tRVNOriI2ZhmSvjpN6Dfhv2Z92YdLLIW3GN0xLHt_4
+@adminId = 36675ca5-5b46-431a-b0e7-636fa059a240
+
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NWUyNDg4My0xNjk3LTRkN2UtODNkMS03OTdiNzY2MGMyNmEiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc0OTg5MjQ3OCwiZXhwIjoxNzQ5OTc4ODc4fQ.tAebGIrWQAYcJWHjEFDXN1aaE2OGsaIchrVrTXamNIE
+@userId = 95e24883-1697-4d7e-83d1-797b7660c26a
+
+@projectId = 7bab9c1a-476a-4e0b-aced-a5b0e203c99f
+### Create a new project 
+POST {{baseUrl}}/projects
+Content-Type: {{contentType}}
+Authorization: Bearer {{adminToken}}
+
+{
+    "name": "Project now",
+    "description": "Description now",
+    "endDate": "2025-07-31T23:59:59Z"
+}
+
+
+### Get all projects as admin
+GET {{baseUrl}}/projects
+Authorization: Bearer {{adminToken}}
+
+### Get all projects as user
+GET {{baseUrl}}/projects
+Authorization: Bearer {{userToken}}
+
+### Get specific project as admin
+GET {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{adminToken}}
+
+### Get specific project as user
+GET {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{userToken}}
+
+### Assign project to user  
+PUT {{baseUrl}}/projects/{{projectId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{adminToken}}
+
+{
+    "assigneeId": "{{userId}}"
+}
+
+### Update project status to IN_PROGRESS (User)
+PUT {{baseUrl}}/projects/{{projectId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{userToken}}
+
+{
+    "status": "IN_PROGRESS"
+}
+
+### Update project status to COMPLETED (User)
+PUT {{baseUrl}}/projects/{{projectId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{userToken}}
+
+{
+    "status": "COMPLETED"
+}
+
+### Try to update project as unauthorized user  
+PUT {{baseUrl}}/projects/{{projectId}}
+Content-Type: {{contentType}}
+Authorization: Bearer wrongtoken
+
+{
+    "status": "COMPLETED"
+}
+
+### Try to assign project as user  
+PUT {{baseUrl}}/projects/{{projectId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{userToken}}
+
+{
+    "assigneeId": "some-other-user-id"
+}
+
+### Delete project 
+DELETE {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{adminToken}}
+
+### Try to delete project as user  
+DELETE {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{userToken}}
+
+### Create project without required fields  
+POST {{baseUrl}}/projects
+Content-Type: {{contentType}}
+Authorization: Bearer {{adminToken}}
+
+{
+    "name": ""
+}
+
+### Try to assign project to non-existent user  
+PUT {{baseUrl}}/projects/{{projectId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{adminToken}}
+
+{
+    "assigneeId": "non-existent-user-id"
+}
+
+### Try to update non-existent project  
+PUT {{baseUrl}}/projects/non-existent-id
+Content-Type: {{contentType}}
+Authorization: Bearer {{adminToken}}
+
+{
+    "status": "COMPLETED"
+}
+
+### Try to access project without token  
+GET {{baseUrl}}/projects/{{projectId}}
+

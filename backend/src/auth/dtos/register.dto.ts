@@ -1,9 +1,7 @@
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 
 export enum UserRole {
-  GUEST = 'GUEST',
-  STAFF = 'STAFF',
-  MANAGER = 'MANAGER',
+  USER = 'USER',
   ADMIN = 'ADMIN',
 }
 
@@ -16,6 +14,6 @@ export class RegisterDto {
   password!: string;
 
   @IsNotEmpty({ message: 'name is required' })
-  @IsNotEmpty({ message: 'name is reguired' })
+  @IsNotEmpty({ message: 'name is required' })
   name!: string;
 }
