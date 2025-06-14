@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Manager - User Dashboard</title>
+    <!-- <link rel="stylesheet" href="./styles/main.css"> -->
+    <link rel="stylesheet" href="./styles/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>User Dashboard</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#" class="active" data-section="myprojects">My Projects</a></li>
+                    <li><a href="#" data-section="tasks">My Tasks</a></li>
+                    <li><a href="#" data-section="profile">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-danger">Logout</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="user-info">
+                    <span id="userName">User Name</span>
+                    <span id="userEmail">user@example.com</span>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+
+                <section id="myprojects" class="dashboard-section active">
+                    <h2>My Projects</h2>
+                    <div class="projects-grid" id="projectsGrid"></div>
+                </section>
+
+                <section id="tasks" class="dashboard-section">
+                    <h2>My Tasks</h2>
+                    <div class="tasks-container">
+                        <div class="tasks-filters">
+                            <select id="taskStatusFilter">
+                                <option value="all">All Tasks</option>
+                                <option value="pending">Pending</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="tasks-list" id="tasksList"></div>
+                    </div>
+                </section>
+
+                <section id="profile" class="dashboard-section">
+                    <h2>Profile Settings</h2>
+                    <form id="userProfileForm">
+                        <div class="form-group">
+                            <label for="userFullName">Full Name</label>
+                            <input type="text" id="userFullName">
+                        </div>
+                        <div class="form-group">
+                            <label for="userEmailInput">Email</label>
+                            <input type="email" id="userEmailInput">
+                        </div>
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="./dist/user.js"></script>
+</body>
+</html>
