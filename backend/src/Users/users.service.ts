@@ -205,7 +205,6 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
       throw new BadRequestException('User ID is required');
     }
 
-    // Check if user exists and is active
     const existingUser = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -214,22 +213,17 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
       throw new NotFoundException('User not found');
     }
 
-    // Prepare update data
     const updateData: Prisma.UserUpdateInput = {};
 
-    // Handle basic fields
     if (data.name) updateData.name = data.name;
     if (data.email) updateData.email = data.email;
 
-    // Handle password update
     if (data.password) {
       if (data.password.length < 8) {
         throw new BadRequestException('Password must be at least 8 characters long');
       }
       updateData.password = await bcrypt.hash(data.password, 12);
     }
-
-    // Handle role update
     if ((data as any).role) {
       const role = await this.prisma.role.findUnique({ 
         where: { name: (data as any).role } 
@@ -310,7 +304,6 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
       throw new BadRequestException('Email and password are required');
     }
 
-    // Find user with password for verification
     const user = await this.prisma.user.findUnique({
       where: { email, isActive: true },
       include: { 
@@ -322,7 +315,6 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
