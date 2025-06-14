@@ -8,7 +8,6 @@ import { CloudinaryService } from '../shared/utils/cloudinary/cloudinary.service
 import { LoginDto } from './dtos/logindto';
 import { Prisma, UserRole } from '@prisma/client';
 
-// API Response wrapper type
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -44,19 +43,14 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
     throw new BadRequestException('Password is required');
   }
 
-  // Validate password strength
   if (data.password.length < 8) {
     throw new BadRequestException('Password must be at least 8 characters long');
   }
 
-  // Handle role assignment
   let roleId: string | undefined;
-  
-  // Check if roleId is provided directly
-  if (data.roleId) {
+    if (data.roleId) {
     roleId = data.roleId;
   }
-  // Check if role name is provided (assuming it exists in CreateUserDto)
   else if ((data as any).role) {
     const role = await this.prisma.role.findUnique({ 
       where: { name: (data as any).role } 
@@ -69,16 +63,14 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
 
   const hashedPassword = await bcrypt.hash(data.password, 12);
 
-  // Prepare data for Prisma create
+
   try {
-    // Build the data object conditionally
     const createData: any = {
       name: data.name,
       email: data.email,
       password: hashedPassword,
     };
 
-    // Only add roleId if it exists
     if (roleId) {
       createData.roleId = roleId;
     }
@@ -87,8 +79,7 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
       data: createData,
       include: {
         role: true,
-        // Remove permissions if it doesn't exist in your schema
-        // permissions: true,
+
       },
     });
 
@@ -105,7 +96,9 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
     }
     throw new BadRequestException('Failed to create user');
   }
-}  async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponseDto[]>> {
+}
+
+async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponseDto[]>> {
     const { page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
 
@@ -113,9 +106,7 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
       this.prisma.user.findMany({
         where: { isActive: true },
         include: { 
-          role: true,
-          // Remove permissions if it doesn't exist in your schema
-          // permissions: true 
+          role: true, 
         },
         skip,
         take: limit,
@@ -147,8 +138,6 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
         },
         include: { 
           role: true,
-          // Remove permissions if it doesn't exist in your schema
-          // permissions: true 
         },
         skip,
         take: limit,
@@ -178,8 +167,6 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
       where: { id },
       include: { 
         role: true,
-        // Remove permissions if it doesn't exist in your schema
-        // permissions: true 
       },
     });
 
@@ -207,8 +194,6 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
       where: { email, isActive: true },
       include: { 
         role: true,
-        // Remove permissions if it doesn't exist in your schema
-        // permissions: true 
       },
     });
 
@@ -267,8 +252,6 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
         data: updateData,
         include: { 
           role: true,
-          // Remove permissions if it doesn't exist in your schema
-          // permissions: true 
         },
       });
 
@@ -332,8 +315,6 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
       where: { email, isActive: true },
       include: { 
         role: true,
-        // Remove permissions if it doesn't exist in your schema
-        // permissions: true 
       },
     });
 
@@ -354,37 +335,35 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
     };
   }
 
-  // async uploadProfileImage(id: string, file: Express.Multer.File): Promise<ApiResponse<UserResponseDto>> {
-  //   const user = await this.prisma.user.findUnique({
-  //     where: { id },
-  //   });
+  async uploadProfileImage(id: string, file: Express.Multer.File): Promise<ApiResponse<UserResponseDto>> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
 
-  //   if (!user || !user.isActive) {
-  //     throw new NotFoundException('User not found');
-  //   }
+    if (!user || !user.isActive) {
+      throw new NotFoundException('User not found');
+    }
 
-  //   try {
-  //     const uploaded = await this.cloudinaryService.upload(file);
+    try {
+      const uploaded = await this.cloudinaryService.upload(file);
 
-  //     const updatedUser = await this.prisma.user.update({
-  //       where: { id },
-  //       data: { profileImage: uploaded.secure_url },
-  //       include: { 
-  //         role: true,
-  //         // Remove permissions if it doesn't exist in your schema
-  //         // permissions: true 
-  //       },
-  //     });
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data: { profileImage: uploaded.secure_url },
+        include: { 
+          role: true,
+        },
+      });
 
-  //     return {
-  //       success: true,
-  //       message: 'Profile image uploaded successfully',
-  //       data: this.sanitizeUser(updatedUser)
-  //     };
-  //   } catch (error) {
-  //     throw new BadRequestException('Failed to upload profile image');
-  //   }
-  // }
+      return {
+        success: true,
+        message: 'Profile image uploaded successfully',
+        data: this.sanitizeUser(updatedUser)
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to upload profile image');
+    }
+  }
 
   async changePassword(id: string, oldPassword: string, newPassword: string): Promise<ApiResponse<{ message: string }>> {
     const user = await this.prisma.user.findUnique({
@@ -424,8 +403,6 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
       data: { isActive: true },
       include: { 
         role: true,
-        // Remove permissions if it doesn't exist in your schema
-        // permissions: true 
       },
     });
 

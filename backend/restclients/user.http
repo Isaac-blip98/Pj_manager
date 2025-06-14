@@ -1,53 +1,44 @@
-### Base URL Configuration
-@baseUrl = http://localhost:3000
-@contentType = application/json
-
-### Variables for testing
-@userId = 1
-@userEmail = test@example.com
-@userPassword = password123456
-
 ### CREATE USER
-POST {{baseUrl}}/users
-Content-Type: {{contentType}}
+POST http://localhost:3000/users
+Content-Type: application/json
 
 {
-  "name": "John Doe",
-  "email": "{{userEmail}}",
-  "password": "{{userPassword}}",
-  "roleId": "USER"
+  "name": "Jane Doe",
+  "email": "janedoe@gmail.com",
+  "password": "hjdj9589",
+  "role": "USER"
 }
 
 ### 2. CREATE ADMIN USER
-POST {{baseUrl}}/users
-Content-Type: {{contentType}}
+POST http://localhost:3000/users
+Content-Type: application/json
 
 {
   "name": "Admin User",
   "email": "admin@example.com",
   "password": "admin123456",
-  "roleId": "ADMIN"
+  "role": "ADMIN"
 }
 
 ### 4. GET ALL USERS
-GET {{baseUrl}}/users
+GET http://localhost:3000/users
 
 
 ### 9. GET USERS BY ROLE - USER
-GET {{baseUrl}}/users/role/USER
+GET http://localhost:3000/users/role/USER
 
 ### 10. GET USERS BY ROLE - ADMIN
-GET {{baseUrl}}/users/role/ADMIN
+GET http://localhost:3000/users/role/ADMIN
 
 ### 12. GET SINGLE USER BY ID
-GET {{baseUrl}}/users/{{userId}}
+GET http://localhost:3000/users/76122294-4672-4235-a24e-11fea07ea405
 
 ### 14. UPDATE USER
-PATCH {{baseUrl}}/users/{{userId}}
-Content-Type: {{contentType}}
+PATCH http://localhost:3000/users/76122294-4672-4235-a24e-11fea07ea405
+Content-Type: application/json
 
 {
   "firstName": "Jane",
   "lastName": "Smith",
-  "email": "jane.smith@example.com"
+  "email": "jane.smithgmail.com"
 }
