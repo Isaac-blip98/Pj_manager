@@ -23,11 +23,18 @@
     "db:seed": "psql -U postgres -d pj_manager -f src/database/seeders/01_admin_seeder.sql"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.9.0",
     "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^6.0.0",
+    "class-validators": "^1.0.1",
+    "ejs": "^3.1.10",
+    "multer": "^2.0.1",
+    "next-cloudinary": "^6.16.0",
+    "nodemailer": "^7.0.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -42,6 +49,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
+    "@types/nodemailer": "^6.4.17",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
