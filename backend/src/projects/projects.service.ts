@@ -10,7 +10,7 @@ import { EmailService } from '../email/email.service';
 import { CreateProjectDto } from './dto/create-project-dto';
 import { UpdateProjectDto } from './dto/update-project-dto';
 import { ProjectResponseDto } from './dto/project-response-dto';
-import { UserRole, ProjectStatus, EmailStatus } from '@prisma/client';
+import { UserRole, ProjectStatus, EmailStatus, Project } from '@prisma/client';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
 
 @Injectable()
@@ -29,7 +29,6 @@ export class ProjectsService {
     }
 
     try {
-      // Check only project name for uniqueness
       const existingProject = await this.prisma.project.findFirst({
         where: { name: createProjectDto.name },
       });
@@ -70,12 +69,38 @@ export class ProjectsService {
     }
   }
 
+  async getUserProject(userId: string): Promise<ApiResponse<Project | null>> {
+    const project = await this.prisma.project.findFirst({
+      where: { assigneeId: userId },
+    });
+
+    return {
+      success: true,
+      message: project
+        ? 'Project retrieved successfully'
+        : 'No project assigned',
+      data: project,
+    };
+  }
+
+  async markAsCompleted(projectId: string): Promise<ApiResponse<Project>> {
+    const project = await this.prisma.project.update({
+      where: { id: projectId },
+      data: { status: 'COMPLETED' },
+    });
+
+    return {
+      success: true,
+      message: 'Project marked as completed',
+      data: project,
+    };
+  }
+
   async findAll(
     userRole: UserRole,
     userId: string,
   ): Promise<ApiResponse<ProjectResponseDto[]>> {
     try {
-      // For users, show both current and completed projects
       const whereClause =
         userRole === UserRole.USER
           ? {
@@ -179,7 +204,6 @@ export class ProjectsService {
     }
 
     try {
-      // Handle project status updates
       if (updateProjectDto.status) {
         if (updateProjectDto.status === ProjectStatus.IN_PROGRESS) {
           if (project.status === ProjectStatus.IN_PROGRESS) {
@@ -192,7 +216,6 @@ export class ProjectsService {
           }
         }
 
-        // Handle completion
         if (updateProjectDto.status === ProjectStatus.COMPLETED) {
           if (project.status === ProjectStatus.COMPLETED) {
             throw new ConflictException(
@@ -212,7 +235,6 @@ export class ProjectsService {
         }
       }
 
-      // Handle project assignment
       if (updateProjectDto.assigneeId) {
         if (userRole !== UserRole.ADMIN) {
           throw new ForbiddenException('Only admins can assign projects');
@@ -222,7 +244,6 @@ export class ProjectsService {
           throw new ConflictException('Project has already been assigned');
         }
 
-        // Check if user has any non-completed projects
         const existingAssignment = await this.prisma.project.findFirst({
           where: {
             assigneeId: updateProjectDto.assigneeId,
@@ -279,7 +300,6 @@ export class ProjectsService {
         };
       }
 
-      // Regular update
       const updatedProject = await this.prisma.project.update({
         where: { id },
         data: updateProjectDto,

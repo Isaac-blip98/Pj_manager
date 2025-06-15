@@ -31,5 +31,5 @@ export class CreateUserDto {
   @IsEnum(UserRole, {
     message: `Role must be one of: ${Object.values(UserRole).join(', ')}`,
   })
-  roleId?: UserRole;
+  role?: UserRole;
 }

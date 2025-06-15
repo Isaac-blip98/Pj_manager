@@ -1,17 +1,22 @@
 import { User } from '@prisma/client';
 
 export interface AuthReponse {
-  User: UserResponse;
+  user: UserResponse;
   access_token: string;
 }
 
+export interface ApiResponse<T> {
+  message?: string;
+  data?: T;
+}
+
 export interface UserResponse {
-  id: number;
+  id: string;
   email: string;
   role: string; 
-  IsActive: boolean;
-  CreatedAt: Date;
-  UpdatedAt: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface JwtPayLoad {

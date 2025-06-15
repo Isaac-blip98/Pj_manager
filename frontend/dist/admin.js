@@ -1,4 +1,10 @@
 "use strict";
+(() => {
+    const role = localStorage.getItem('role');
+    if (role !== 'ADMIN') {
+        window.location.href = 'auth.html';
+    }
+})();
 document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll('.sidebar-nav a');
     const sections = document.querySelectorAll('.dashboard-section');

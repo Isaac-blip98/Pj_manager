@@ -1,3 +1,11 @@
+(() => {
+  const role = localStorage.getItem('role');
+  if (role !== 'ADMIN') {
+    window.location.href = 'auth.html';
+  }
+
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll<HTMLAnchorElement>('.sidebar-nav a');
     const sections = document.querySelectorAll<HTMLElement>('.dashboard-section');

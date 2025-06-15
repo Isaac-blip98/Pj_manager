@@ -10,17 +10,20 @@ import {
   HttpStatus,
   ValidationPipe,
   ParseUUIDPipe,
+  UseGuards,
+  Patch,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project-dto';
 import { UpdateProjectDto } from './dto/update-project-dto';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
 import { ProjectResponseDto } from './dto/project-response-dto';
-import { UserRole } from '@prisma/client';
+import { Project, UserRole } from '@prisma/client';
 import { User } from '../common/decorators/user.decorator';
 import type { AuthUser } from '../common/interfaces/auth-user.interface';
 
 import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/Guards/jwt-auth.guard';
 
 @Controller('projects')
 export class ProjectsController {
@@ -42,6 +45,22 @@ export class ProjectsController {
     @User() user: AuthUser,
   ): Promise<ApiResponse<ProjectResponseDto[]>> {
     return this.projectsService.findAll(user.role, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('user/:userId')
+  async getUserProject(
+    @Param('userId') userId: string,
+  ): Promise<ApiResponse<Project | null>> {
+    return this.projectsService.getUserProject(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/complete')
+  async markProjectCompleted(
+    @Param('id') id: string,
+  ): Promise<ApiResponse<Project>> {
+    return this.projectsService.markAsCompleted(String(id));
   }
 
   @Get(':id')
