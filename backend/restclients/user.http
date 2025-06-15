@@ -1,0 +1,49 @@
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImphbmVkb2VAZ21haWwuY29tIiwidXNlcklkIjoiN2JkZDgwM2QtY2I2My00YWViLWIzMTUtYTE5ZDAyZGQ5MmViIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NDk5MDI0MzUsImV4cCI6MTc0OTk4ODgzNX0.UkJQpFDP3V_5umiHxjPtF6tvJgebQ5FfIy5uRRRKFN8
+# @authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwidXNlcklkIjoiZTMwOTdjNGEtODcwYy00YThiLTg5NDUtNGM1OTMwY2Q0ODEyIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzQ5OTE0NjY5LCJleHAiOjE3NTAwMDEwNjl9.VbYRhC00ip8eM5f597c3HVrUVD02Itx4nEYJR3P9Wu0
+
+
+### CREATE USER
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "email": "janedoe@gmail.com",
+  "password": "hjdj9589",
+  "role": "USER"
+}
+
+### CREATE ADMIN USER
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "admin123456",
+  "role": "ADMIN"
+}
+
+### GET ALL USERS
+GET http://localhost:3000/users
+Authorization: Bearer{{@authToken}}
+
+
+### GET USERS BY ROLE - USER
+GET http://localhost:3000/users/role/USER
+
+### GET USERS BY ROLE - ADMIN
+GET http://localhost:3000/users/role/ADMIN
+
+### GET SINGLE USER BY ID
+GET http://localhost:3000/users/76122294-4672-4235-a24e-11fea07ea405
+
+### UPDATE USER
+PATCH http://localhost:3000/users/76122294-4672-4235-a24e-11fea07ea405
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smithgmail.com"
+}
