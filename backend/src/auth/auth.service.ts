@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Injectable,
   UnauthorizedException,
@@ -11,6 +10,7 @@ import { RegisterDto } from './dtos/register.dto';
 import { UserRole } from '@prisma/client';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
 import * as bcrypt from 'bcrypt';
+import { AuthReponse } from './Interface/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,9 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(loginDto: loginDto): Promise<ApiResponse<Response>> {
+  async login(
+    loginDto: loginDto,
+  ): Promise<ApiResponse<AuthReponse>> {
     const user = await this.prisma.user.findUnique({
       where: { email: loginDto.email },
       select: {
@@ -28,6 +30,9 @@ export class AuthService {
         password: true,
         name: true,
         role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -44,7 +49,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const token = this.jwtService.sign({
+    const access_token = this.jwtService.sign({
       sub: user.id,
       role: user.role,
     });
@@ -55,13 +60,13 @@ export class AuthService {
       success: true,
       message: 'Login successful',
       data: {
-        token,
+        access_token,
         user: userWithoutPassword,
       },
     };
   }
 
-  async register(registerDto: RegisterDto): Promise<ApiResponse<Response>> {
+  async register(registerDto: RegisterDto): Promise<ApiResponse<AuthReponse>> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: registerDto.email },
     });
@@ -81,16 +86,26 @@ export class AuthService {
       },
       select: {
         id: true,
-        name: true,
         email: true,
         role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
       },
+    });
+
+    const access_token = this.jwtService.sign({
+      sub: user.id,
+      role: user.role,
     });
 
     return {
       success: true,
       message: 'Registration successful',
-      data: user,
+      data: {
+        user: { ...user, id: (user.id) },
+        access_token,
+      },
     };
   }
 }

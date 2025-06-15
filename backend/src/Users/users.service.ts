@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from '../Users/dtos/createuser.dto';
 import { UpdateUserDto } from '../Users/dtos/updateuser.dto';
@@ -19,13 +24,6 @@ interface PaginationOptions {
   limit?: number;
 }
 
-interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
-
 @Injectable()
 export class UsersService {
   constructor(
@@ -35,8 +33,9 @@ export class UsersService {
 
   private sanitizeUser(user: any): UserResponseDto {
     const { password, ...rest } = user;
-    return rest;
+    return rest as UserResponseDto;
   }
+
 
 async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
   if (!data.password) {
@@ -44,49 +43,31 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
   }
 
   if (data.password.length < 8) {
-    throw new BadRequestException('Password must be at least 8 characters long');
+    throw new BadRequestException(
+      'Password must be at least 8 characters long',
+    );
   }
 
-  let roleId: string | undefined;
-    if (data.roleId) {
-    roleId = data.roleId;
-  }
-  else if ((data as any).role) {
-    const role = await this.prisma.role.findUnique({ 
-      where: { name: (data as any).role } 
-    });
-    if (!role) {
-      throw new BadRequestException('Invalid role');
-    }
-    roleId = role.id;
+  if (data.role && !Object.values(UserRole).includes(data.role as UserRole)) {
+    throw new BadRequestException('Invalid role provided');
   }
 
   const hashedPassword = await bcrypt.hash(data.password, 12);
 
-
   try {
-    const createData: any = {
-      name: data.name,
-      email: data.email,
-      password: hashedPassword,
-    };
-
-    if (roleId) {
-      createData.roleId = roleId;
-    }
-
     const user = await this.prisma.user.create({
-      data: createData,
-      include: {
-        role: true,
-
+      data: {
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+        role: data.role ?? UserRole.USER, // default role if not provided
       },
     });
 
     return {
       success: true,
       message: 'User created successfully',
-      data: this.sanitizeUser(user)
+      data: this.sanitizeUser(user),
     };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -98,16 +79,15 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
   }
 }
 
-async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponseDto[]>> {
+  async findAll(
+    options: PaginationOptions = {},
+  ): Promise<ApiResponse<UserResponseDto[]>> {
     const { page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where: { isActive: true },
-        include: { 
-          role: true, 
-        },
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -118,15 +98,20 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
     return {
       success: true,
       message: 'Users retrieved successfully',
-      data: users.map(user => this.sanitizeUser(user))
+      data: users.map((user) => this.sanitizeUser(user)),
     };
   }
 
-  async findActive(options: PaginationOptions = {}): Promise<ApiResponse<UserResponseDto[]>> {
+  async findActive(
+    options: PaginationOptions = {},
+  ): Promise<ApiResponse<UserResponseDto[]>> {
     return this.findAll(options);
   }
 
-  async findByRole(role: UserRole, options: PaginationOptions = {}): Promise<ApiResponse<UserResponseDto[]>> {
+  async findByRole(
+    role: UserRole,
+    options: PaginationOptions = {},
+  ): Promise<ApiResponse<UserResponseDto[]>> {
     const { page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
 
@@ -134,10 +119,7 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
       this.prisma.user.findMany({
         where: {
           isActive: true,
-          role: { name: role },
-        },
-        include: { 
-          role: true,
+          role,
         },
         skip,
         take: limit,
@@ -146,7 +128,7 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
       this.prisma.user.count({
         where: {
           isActive: true,
-          role: { name: role },
+          role,
         },
       }),
     ]);
@@ -154,7 +136,7 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
     return {
       success: true,
       message: 'Users retrieved successfully',
-      data: users.map(user => this.sanitizeUser(user))
+      data: users.map((user) => this.sanitizeUser(user)),
     };
   }
 
@@ -165,9 +147,6 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
 
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: { 
-        role: true,
-      },
     });
 
     if (!user || !user.isActive) {
@@ -177,7 +156,7 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
     return {
       success: true,
       message: 'User retrieved successfully',
-      data: this.sanitizeUser(user)
+      data: this.sanitizeUser(user),
     };
   }
 
@@ -192,15 +171,15 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
 
     const user = await this.prisma.user.findUnique({
       where: { email, isActive: true },
-      include: { 
-        role: true,
-      },
     });
 
     return user ? this.sanitizeUser(user) : null;
   }
 
-  async update(id: string, data: UpdateUserDto): Promise<ApiResponse<UserResponseDto>> {
+  async update(
+    id: string,
+    data: UpdateUserDto,
+  ): Promise<ApiResponse<UserResponseDto>> {
     if (!id) {
       throw new BadRequestException('User ID is required');
     }
@@ -220,39 +199,26 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
 
     if (data.password) {
       if (data.password.length < 8) {
-        throw new BadRequestException('Password must be at least 8 characters long');
+        throw new BadRequestException(
+          'Password must be at least 8 characters long',
+        );
       }
       updateData.password = await bcrypt.hash(data.password, 12);
     }
-    if ((data as any).role) {
-      const role = await this.prisma.role.findUnique({ 
-        where: { name: (data as any).role } 
-      });
-      if (!role) {
-        throw new BadRequestException('Invalid role');
-      }
-      updateData.role = {
-        connect: { id: role.id }
-      };
-    } else if (data.roleId) {
-      updateData.role = {
-        connect: { id: data.roleId }
-      };
-    }
+if (data.role && !Object.values(UserRole).includes(data.role as UserRole)) {
+  throw new BadRequestException('Invalid role');
+}
 
     try {
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data: updateData,
-        include: { 
-          role: true,
-        },
       });
 
       return {
         success: true,
         message: 'User updated successfully',
-        data: this.sanitizeUser(updatedUser)
+        data: this.sanitizeUser(updatedUser),
       };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -274,7 +240,7 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
 
     try {
       const user = await this.prisma.user.findUnique({ where: { id } });
-      
+
       if (!user) {
         throw new NotFoundException('User not found');
       }
@@ -287,7 +253,7 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
       return {
         success: true,
         message: 'User deactivated successfully',
-        data: { message: 'User deactivated successfully' }
+        data: { message: 'User deactivated successfully' },
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -306,9 +272,6 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
 
     const user = await this.prisma.user.findUnique({
       where: { email, isActive: true },
-      include: { 
-        role: true,
-      },
     });
 
     if (!user) {
@@ -323,11 +286,14 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
     return {
       success: true,
       message: 'Login successful',
-      data: this.sanitizeUser(user)
+      data: this.sanitizeUser(user),
     };
   }
 
-  async uploadProfileImage(id: string, file: Express.Multer.File): Promise<ApiResponse<UserResponseDto>> {
+  async uploadProfileImage(
+    id: string,
+    file: Express.Multer.File,
+  ): Promise<ApiResponse<UserResponseDto>> {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -342,66 +308,15 @@ async findAll(options: PaginationOptions = {}): Promise<ApiResponse<UserResponse
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data: { profileImage: uploaded.secure_url },
-        include: { 
-          role: true,
-        },
       });
 
       return {
         success: true,
         message: 'Profile image uploaded successfully',
-        data: this.sanitizeUser(updatedUser)
+        data: this.sanitizeUser(updatedUser),
       };
     } catch (error) {
       throw new BadRequestException('Failed to upload profile image');
     }
-  }
-
-  async changePassword(id: string, oldPassword: string, newPassword: string): Promise<ApiResponse<{ message: string }>> {
-    const user = await this.prisma.user.findUnique({
-      where: { id, isActive: true },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
-    if (!isOldPasswordValid) {
-      throw new BadRequestException('Current password is incorrect');
-    }
-
-    if (newPassword.length < 8) {
-      throw new BadRequestException('New password must be at least 8 characters long');
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-
-    await this.prisma.user.update({
-      where: { id },
-      data: { password: hashedNewPassword },
-    });
-
-    return {
-      success: true,
-      message: 'Password changed successfully',
-      data: { message: 'Password changed successfully' }
-    };
-  }
-
-  async reactivateUser(id: string): Promise<ApiResponse<UserResponseDto>> {
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: { isActive: true },
-      include: { 
-        role: true,
-      },
-    });
-
-    return {
-      success: true,
-      message: 'User reactivated successfully',
-      data: this.sanitizeUser(updatedUser)
-    };
   }
 }

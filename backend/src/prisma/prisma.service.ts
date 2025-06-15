@@ -13,6 +13,7 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
   private static isConnected = false;
+  role: any;
 
   constructor() {
     super({

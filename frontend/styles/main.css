@@ -18,7 +18,6 @@
     --light-bg: #f8fafc;
 }
 
-/* Typography & Body */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
@@ -26,14 +25,12 @@ body {
     background-color: var(--background-color);
 }
 
-/* Layout */
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
 }
 
-/* Header */
 header {
     background-color: var(--white);
     padding: 1rem 0;
@@ -44,7 +41,6 @@ header h1 {
     color: var(--primary-color);
 }
 
-/* Navigation */
 nav ul {
     list-style: none;
     display: flex;
@@ -52,7 +48,6 @@ nav ul {
     flex-wrap: wrap;
 }
 
-/* Buttons */
 .btn {
     display: inline-block;
     padding: 0.5rem 1rem;
@@ -82,13 +77,11 @@ nav ul {
     background-color: var(--danger-hover);
 }
 
-/* Hero Section */
 .hero {
     padding: 2rem 0;
     text-align: center;
 }
 
-/* Forms */
 .form-group {
     margin-bottom: 1rem;
 }
@@ -107,14 +100,12 @@ nav ul {
     border-radius: 0.375rem;
 }
 
-/* Error Messages */
 .error-message {
     color: var(--danger-color);
     margin-top: 0.5rem;
     display: none;
 }
 
-/* Tables */
 .table-container {
     overflow-x: auto;
 }
@@ -136,7 +127,6 @@ th {
     font-weight: 600;
 }
 
-/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -162,7 +152,6 @@ th {
     cursor: pointer;
 }
 
-/* Footer */
 footer {
     text-align: center;
     padding: 2rem 0;
@@ -170,7 +159,6 @@ footer {
     border-top: 1px solid var(--border-color);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .container {
         padding: 0 0.5rem;
