@@ -13,6 +13,9 @@ datasource db {
 enum EmailStatus {
   SENT
   NOT_SENT
+  PENDING
+  PROCESSING
+  FAILED
 }
 
 enum UserRole {
@@ -21,50 +24,81 @@ enum UserRole {
 }
 
 enum ProjectStatus {
-  PENDING
   IN_PROGRESS
   COMPLETED
+  ON_HOLD
+  CANCELLED
 }
 
-enum Permission {
-  READ_PROJECTS
-  CREATE_PROJECTS
-  UPDATE_PROJECTS
-  DELETE_PROJECTS
-  MANAGE_USERS
-  MANAGE_PROJECTS
-  VIEW_OWN_PROJECT
-  UPDATE_OWN_PROJECT
+enum NotificationType {
+  DEADLINE_NEAR
+  OVERDUE
+  STALE
 }
 
 model User {
-  id              String      @id @default(uuid())
-  name            String      @db.VarChar(200)
-  email           String      @unique @db.VarChar(150)
-  password        String      @db.VarChar(200)
-  profileImage    String?     @map("profile_image") @db.VarChar(255)
-  role            UserRole    @default(USER)
-  emailStatus     EmailStatus @default(NOT_SENT) @map("email_status")
-  isActive        Boolean     @default(true) @map("is_active")
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
-  assignedProject Project?
+  id              String         @id @default(uuid())
+  name            String         @db.VarChar(200)
+  email           String         @unique @db.VarChar(150)
+  password        String         @db.VarChar(200)
+  profileImage    String?        @map("profile_image") @db.VarChar(255)
+  role            UserRole       @default(USER)
+  emailStatus     EmailStatus    @default(NOT_SENT) @map("email_status")
+  isActive        Boolean        @default(true) @map("is_active")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  assignedProject Project?       @relation(fields: [projectId], references: [id])
+  projects        Project[]      @relation("UserProjects")
+  notifications   Notification[]
+  projectId       String?
 
   @@map("users")
 }
 
 model Project {
-  id          String        @id @default(uuid())
-  name        String        @unique @db.VarChar(200)
-  description String?       @unique
-  endDate     DateTime      @map("end_date")
-  status      ProjectStatus @default(PENDING)
-  assigneeId  String?       @unique @map("assignee_id")
-  isActive    Boolean       @default(true) @map("is_active")
-  emailStatus EmailStatus   @default(NOT_SENT) @map("email_status")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  assignee    User?         @relation(fields: [assigneeId], references: [id])
+  id            String         @id @default(uuid())
+  name          String         @unique
+  description   String?        @db.Text
+  startDate     DateTime       @map("start_date")
+  endDate       DateTime       @map("end_date")
+  status        ProjectStatus  @default(IN_PROGRESS)
+  emailStatus   EmailStatus    @default(NOT_SENT) @map("email_status")
+  assigneeId    String?        @map("assignee_id")
+  assignee      User?          @relation("UserProjects", fields: [assigneeId], references: [id])
+  isActive      Boolean        @default(true) @map("is_active")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  notifications Notification[]
+  User          User[]
 
   @@map("projects")
+}
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String              @map("user_id")
+  type      NotificationType
+  message   String              @db.Text
+  projectId String              @map("project_id")
+  read      Boolean             @default(false)
+  createdAt DateTime            @default(now()) @map("created_at")
+  user      User                @relation(fields: [userId], references: [id])
+  project   Project             @relation(fields: [projectId], references: [id])
+
+  @@map("notifications")
+}
+
+model EmailQueue {
+  id          String      @id @default(uuid())
+  to          String
+  subject     String
+  template    String
+  context     String      @db.Text
+  status      EmailStatus @default(PENDING)
+  error       String?     @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at")
+  processedAt DateTime?   @map("processed_at")
+  retries     Int         @default(0)
+
+  @@map("email_queue")
 }

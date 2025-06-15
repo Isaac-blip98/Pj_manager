@@ -1,11 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { EmailOptions } from './interfaces/email.interface';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
 
   constructor(private mailerService: MailerService) {}
+
+  sendMail(options: EmailOptions): Promise<void> {
+    return this.mailerService.sendMail(options);
+  }
 
   async sendProjectAssignmentEmail(
     assignee: { email: string; name: string },
