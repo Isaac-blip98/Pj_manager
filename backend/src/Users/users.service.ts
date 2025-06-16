@@ -60,7 +60,7 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
         name: data.name,
         email: data.email,
         password: hashedPassword,
-        role: data.role ?? UserRole.USER, // default role if not provided
+        role: data.role ?? UserRole.USER, 
       },
     });
 
