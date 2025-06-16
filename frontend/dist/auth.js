@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('token', data.access_token);
             localStorage.setItem('role', data.User.role);
             localStorage.setItem('userId', data.User.id.toString());
-            // Redirect
             if (data.User.role === 'ADMIN') {
                 window.location.href = './admin.html';
             }
@@ -51,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
             errorElement.textContent = error.message || 'An error occurred during login';
         }
     }));
-    // Tab toggle logic (if you have multiple forms like login/register)
     const tabButtons = document.querySelectorAll('.tab-btn');
     const forms = document.querySelectorAll('.auth-forms form');
     tabButtons.forEach((btn) => {
