@@ -1,4 +1,4 @@
-import { User, Project, AdminProfile } from './types';
+import type { User, Project, AdminProfile } from './types';
 
 // Initialize admin data
 let adminProfile: AdminProfile | null = null;
@@ -6,10 +6,10 @@ let users: User[] = [];
 let projects: Project[] = [];
 
 const sections = [
-  { id: 'overview', title: 'Overview', icon: 'fas fa-chart-pie' },
-  { id: 'users', title: 'Users Management', icon: 'fas fa-users' },
-  { id: 'projects', title: 'Projects Management', icon: 'fas fa-project-diagram' },
-  { id: 'settings', title: 'Settings', icon: 'fas fa-cog' }
+  { id: "overview", title: "Overview", icon: "fas fa-tachometer-alt" },
+  { id: "users", title: "Users", icon: "fas fa-users" },
+  { id: "projects", title: "Projects", icon: "fas fa-project-diagram" },
+  { id: "settings", title: "Settings", icon: "fas fa-cog" }
 ];
 
 // Authentication check
@@ -76,28 +76,125 @@ async function fetchAdminProfile(): Promise<void> {
   }
 }
 
-// Fetch users
+// Fetch users and filter out admins globally
 async function fetchUsers(): Promise<void> {
-  const token = localStorage.getItem('token');
-  
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
   try {
-    const response = await fetch('http://localhost:3000/users', {
+    const res = await fetch("http://localhost:3000/users", {
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
+    const data = await res.json();
 
-    if (!response.ok) throw new Error('Failed to fetch users');
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to fetch users");
+    }
 
-    const data = await response.json();
-    users = data.data;
+    // Only keep users with USER role
+    users = data.data.filter((user: { role: string }) => user.role === "USER");
     renderUsers();
-    updateStats();
-
-  } catch (error) {
-    console.error('Error fetching users:', error);
+  } catch (err: any) {
+    users = [];
+    renderUsers();
+    console.error("Failed to load users:", err.message);
   }
 }
+
+// Show project form and populate users when "Add New Project" is clicked
+document.addEventListener('DOMContentLoaded', () => {
+  const addProjectBtn = document.getElementById('addProjectBtn') as HTMLButtonElement;
+  const formContainer = document.getElementById('projectFormContainer') as HTMLDivElement;
+  const cancelBtn = document.getElementById('cancelProjectBtn') as HTMLButtonElement;
+  const projectForm = document.getElementById('projectForm') as HTMLFormElement;
+
+  if (addProjectBtn && formContainer && cancelBtn && projectForm) {
+    addProjectBtn.addEventListener('click', () => {
+      formContainer.classList.remove('hidden');
+      populateUserDropdown(); // Populate users each time form is shown
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      formContainer.classList.add('hidden');
+      projectForm.reset();
+    });
+
+    projectForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      // Grab form values
+      const name = (document.getElementById('projectName') as HTMLInputElement).value;
+      const assigneeId = (document.getElementById('projectAssignee') as HTMLSelectElement).value;
+      const status = (document.getElementById('projectStatus') as HTMLSelectElement).value;
+
+      // Call your backend function or handler to save the project
+      console.log({ name, assigneeId, status });
+
+      // After saving, hide the form and reset
+      formContainer.classList.add('hidden');
+      projectForm.reset();
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+  populateUserDropdown();      // ← call here
+  fetchAndRenderProjects();    // if already implemented
+});
+
+});
+
+const projectForm = document.getElementById("projectForm") as HTMLFormElement;
+
+projectForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const name = (document.getElementById("projectName") as HTMLInputElement).value;
+  const assigneeId = (document.getElementById("projectAssignee") as HTMLSelectElement).value;
+  const status = (document.getElementById("projectStatus") as HTMLSelectElement).value;
+
+  const res = await fetch("http://localhost:3000/projects", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ name, assignedUserId: assigneeId, status })
+  });
+
+  if (!res.ok) {
+    alert("Failed to create project");
+    return;
+  }
+
+  alert("Project created successfully");
+  projectForm.reset();
+  const projectFormContainer = document.getElementById("projectFormContainer") as HTMLDivElement;
+  if (projectFormContainer) {
+    projectFormContainer.classList.add("hidden");
+  }
+  fetchAndRenderProjects(); // Refresh project table
+});
+
+
+// Fetch users with USER role and populate the dropdown
+async function populateUserDropdown(): Promise<void> {
+  const select = document.getElementById("projectAssignee") as HTMLSelectElement;
+  if (!select) return;
+
+  select.innerHTML = `<option value="">Select User</option>`;
+
+  users.forEach((user: { id: string; name: string; email: string }) => {
+    const option = document.createElement("option");
+    option.value = user.id;
+    option.textContent = `${user.name} (${user.email})`;
+    select.appendChild(option);
+  });
+}
+
 
 // Fetch projects
 async function fetchProjects(): Promise<void> {
@@ -196,6 +293,25 @@ function renderProjects(): void {
   });
 }
 
+async function populateUserOptions() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const res = await fetch("http://localhost:3000/api/users", {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const users = await res.json();
+  const select = document.getElementById("projectAssignee") as HTMLSelectElement;
+  users.forEach((user: any) => {
+    const option = document.createElement("option");
+    option.value = user.id;
+    option.textContent = user.email;
+    select.appendChild(option);
+  });
+}
+
+
 // Update dashboard stats
 function updateStats(): void {
   const totalUsersEl = document.getElementById('totalUsers');
@@ -238,7 +354,7 @@ async function assignProject(projectId: string, userId: string): Promise<void> {
 function renderNavigation(): void {
   const nav = document.querySelector('.sidebar-nav ul');
   if (!nav) return;
-  
+
   nav.innerHTML = sections.map(section => `
     <li>
       <a href="#${section.id}" data-section="${section.id}" class="${section.id === 'overview' ? 'active' : ''}">
@@ -254,22 +370,21 @@ function renderNavigation(): void {
   });
 }
 
-// Handle navigation
 function handleNavigation(e: Event): void {
   e.preventDefault();
   const link = e.currentTarget as HTMLAnchorElement;
   const sectionId = link.dataset.section;
 
-  if (!sectionId) return;
+  if (!sectionId || !document.getElementById(sectionId)) return;
 
   // Update URL
   window.history.pushState({}, '', `#${sectionId}`);
 
-  // Update active state
+  // Update active nav link
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
   link.classList.add('active');
 
-  // Show correct section
+  // Toggle section visibility
   document.querySelectorAll('.dashboard-section').forEach(section => {
     section.classList.toggle('active', section.id === sectionId);
   });
@@ -287,6 +402,19 @@ function handleNavigation(e: Event): void {
       break;
   }
 }
+
+// Initialize navigation after DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  renderNavigation();
+
+  // Optional: navigate to current hash on page load
+  const currentHash = window.location.hash.replace('#', '') || 'overview';
+  const defaultLink = document.querySelector(`.sidebar-nav a[data-section="${currentHash}"]`);
+  if (defaultLink) {
+    (defaultLink as HTMLElement).click();
+  }
+});
+
 
 // Load admin settings
 async function loadAdminSettings(): Promise<void> {
@@ -527,3 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+function fetchAndRenderProjects() {
+  throw new Error('Function not implemented.');
+}

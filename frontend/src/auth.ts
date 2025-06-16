@@ -17,6 +17,12 @@ interface LoginResponse {
   };
 }
 
+interface RegisterDto {
+  name: string;
+  email: string;
+  password: string;
+}
+
 interface LoginDto {
   email: string;
   password: string;
@@ -27,6 +33,75 @@ document.addEventListener('DOMContentLoaded', () => {
   const emailInput = document.getElementById('loginEmail') as HTMLInputElement;
   const passwordInput = document.getElementById('loginPassword') as HTMLInputElement;
   const errorElement = document.getElementById('loginError') as HTMLParagraphElement;
+  const registerForm = document.getElementById('registerForm') as HTMLFormElement;
+  const nameInput = document.getElementById('registerName') as HTMLInputElement;
+  const registerEmail = document.getElementById('registerEmail') as HTMLInputElement;
+  const registerPassword = document.getElementById('registerPassword') as HTMLInputElement;
+  const confirmPassword = document.getElementById('confirmPassword') as HTMLInputElement;
+  const registerError = document.getElementById('registerError') as HTMLParagraphElement;
+
+
+if (registerForm) {
+  registerForm.addEventListener('submit', async (e: Event) => {
+    e.preventDefault();
+    registerError.textContent = '';
+
+    const name = nameInput.value.trim();
+    const email = registerEmail.value.trim();
+    const password = registerPassword.value;
+    const confirm = confirmPassword.value;
+
+    if (password !== confirm) {
+      registerError.textContent = 'Passwords do not match';
+      return;
+    }
+
+    const payload: RegisterDto = { name, email, password };
+    const submitButton = registerForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Registering...';
+
+    try {
+      const res = await fetch('http://localhost:3000/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const responseData: ApiResponse<LoginResponse> = await res.json();
+
+      if (!res.ok) {
+        throw new Error(responseData.message || 'Registration failed');
+      }
+
+      if (!responseData.data) {
+        throw new Error('Invalid response format');
+      }
+
+      const { access_token, user } = responseData.data;
+
+      // Store login info and redirect
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('role', user.role);
+      localStorage.setItem('userId', user.id);
+      localStorage.setItem('userEmail', user.email);
+
+      if (user.role === 'ADMIN') {
+        window.location.href = 'admin.html';
+      } else {
+        window.location.href = 'user.html';
+      }
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      registerError.textContent = error.message || 'An error occurred during registration';
+      registerError.classList.add('show');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.innerHTML = '<i class="fas fa-user-plus"></i> Register';
+    }
+  });
+}
 
   if (!loginForm || !emailInput || !passwordInput || !errorElement) {
     console.error('Required form elements not found');
