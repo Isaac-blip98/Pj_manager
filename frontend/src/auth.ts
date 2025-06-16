@@ -1,12 +1,19 @@
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: string;
+}
+
 interface LoginResponse {
   access_token: string;
-  User: {
-    id: number;
+  user: {  
+    id: string;
     email: string;
     role: 'ADMIN' | 'USER';
-    IsActive: boolean;
-    CreatedAt: string;
-    UpdatedAt: string;
+    isActive: boolean;  
+    createdAt: string; 
+    updatedAt: string; 
   };
 }
 
@@ -21,18 +28,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.getElementById('loginPassword') as HTMLInputElement;
   const errorElement = document.getElementById('loginError') as HTMLParagraphElement;
 
-  if (!emailInput || !passwordInput) {
-  console.error('Email or Password input not found in DOM');
-  return;
-}
+  if (!loginForm || !emailInput || !passwordInput || !errorElement) {
+    console.error('Required form elements not found');
+    return;
+  }
 
-  loginForm?.addEventListener('submit', async (e: Event) => {
+  loginForm.addEventListener('submit', async (e: Event) => {
     e.preventDefault();
+    errorElement.textContent = '';
 
     const payload: LoginDto = {
       email: emailInput.value,
       password: passwordInput.value,
     };
+
+    const submitButton = loginForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Logging in...';
 
     try {
       const res = await fetch('http://localhost:3000/auth/login', {
@@ -43,24 +55,37 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(payload),
       });
 
+      const responseData: ApiResponse<LoginResponse> = await res.json();
+
       if (!res.ok) {
-        const errorData: { message?: string } = await res.json();
-        throw new Error(errorData.message || 'Login failed');
+        throw new Error(responseData.message || 'Login failed');
       }
 
-      const data: LoginResponse = await res.json();
+      if (!responseData.data) {
+        throw new Error('Invalid response format');
+      }
 
-      localStorage.setItem('token', data.access_token);
-      localStorage.setItem('role', data.User.role);
-      localStorage.setItem('userId', data.User.id.toString());
+      const { access_token, user } = responseData.data; 
 
-      if (data.User.role === 'ADMIN') {
-        window.location.href = './admin.html';
+      // Store auth data
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('role', user.role);
+      localStorage.setItem('userId', user.id);
+      localStorage.setItem('userEmail', user.email);
+
+      // Redirect based on role
+      if (user.role === 'ADMIN') {
+        window.location.href = 'admin.html'; 
       } else {
-        window.location.href = './user.html';
+        window.location.href = 'user.html'; 
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       errorElement.textContent = error.message || 'An error occurred during login';
+      errorElement.classList.add('show');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
     }
   });
 

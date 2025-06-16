@@ -3,30 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Manager - Home</title>
+    <title>Project Manager - Admin Dashboard</title>
     <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Project Manager</h1>
+        <header class="main-header">
+            <div class="logo">
+                <i class="fas fa-tasks"></i>
+                <h1>Project Manager</h1>
+            </div>
             <nav>
                 <ul>
-                    <li><a href="auth.html" class="btn">Login / Register</a></li>
+                    <li><a href="auth.html" class="btn btn-outline">Login</a></li>
+                    <li><a href="auth.html?tab=register" class="btn btn-primary">Get Started</a></li>
                 </ul>
             </nav>
         </header>
+        
         <main>
             <section class="hero">
-                <h2>Welcome to Project Manager</h2>
-                <p>Manage your projects efficiently and effectively.</p>
-                <a href="auth.html" class="btn btn-primary">Get Started</a>
+                <div class="hero-content">
+                    <h2>Manage Projects with Ease</h2>
+                    <p>Streamline your project management process with our intuitive platform.</p>
+                    <div class="hero-buttons">
+                        <a href="auth.html?tab=register" class="btn btn-primary btn-large">
+                            <i class="fas fa-rocket"></i> Get Started Free
+                        </a>
+                        <a href="#features" class="btn btn-secondary btn-large">
+                            <i class="fas fa-info-circle"></i> Learn More
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" class="features">
+                <h2>Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-project-diagram"></i>
+                        <h3>Project Management</h3>
+                        <p>Create and manage projects with ease</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Team Collaboration</h3>
+                        <p>Work together seamlessly</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-bell"></i>
+                        <h3>Real-time Notifications</h3>
+                        <p>Stay updated with project progress</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Progress Tracking</h3>
+                        <p>Monitor project status in real-time</p>
+                    </div>
+                </div>
             </section>
         </main>
+
         <footer>
-            <p>&copy; 2025 Project Manager. All rights reserved.</p>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Project Manager</h3>
+                    <p>&copy; 2025 All rights reserved.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="auth.html">Login</a></li>
+                        <li><a href="auth.html?tab=register">Register</a></li>
+                    </ul>
+                </div>
+            </div>
         </footer>
     </div>
-    <script src="scripts/dist/main.js"></script>
+    <script src="./scripts/dist/auth.js"></script>
 </body>
 </html>

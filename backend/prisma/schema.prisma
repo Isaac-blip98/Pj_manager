@@ -98,7 +98,7 @@ model EmailQueue {
   error       String?     @db.Text
   createdAt   DateTime    @default(now()) @map("created_at")
   processedAt DateTime?   @map("processed_at")
-  retries     Int         @default(0)
+  retries     Int        @default(0)
 
   @@map("email_queue")
 }

@@ -57,7 +57,10 @@ let AuthService = class AuthService {
     }
     async login(loginDto) {
         const user = await this.prisma.user.findUnique({
-            where: { email: loginDto.email },
+            where: {
+                email: loginDto.email,
+                isActive: true,
+            },
             select: {
                 id: true,
                 email: true,
@@ -78,15 +81,22 @@ let AuthService = class AuthService {
         }
         const access_token = this.jwtService.sign({
             sub: user.id,
+            email: user.email,
             role: user.role,
         });
-        const { password: _, ...userWithoutPassword } = user;
         return {
             success: true,
             message: 'Login successful',
             data: {
                 access_token,
-                user: userWithoutPassword,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    role: user.role,
+                    isActive: user.isActive,
+                    createdAt: user.createdAt,
+                    updatedAt: user.updatedAt,
+                },
             },
         };
     }
@@ -122,7 +132,7 @@ let AuthService = class AuthService {
             success: true,
             message: 'Registration successful',
             data: {
-                user: { ...user, id: (user.id) },
+                user: { ...user, id: user.id },
                 access_token,
             },
         };

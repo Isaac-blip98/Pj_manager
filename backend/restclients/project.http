@@ -2,13 +2,13 @@
 @contentType = application/json
 
 
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNDBkMjM3Zi05MDU0LTQ0NmMtYTU0NC01M2VhNDNjNTMwOTMiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NDk5Njg3NzEsImV4cCI6MTc1MDA1NTE3MX0.PRm_cbO2VPN9h6lepQHDwPEV460iqqdj0VqgZPZgjd8
-@adminId = a40d237f-9054-446c-a544-53ea43c53093
+@adminToken = 
+@adminId =  
 
-@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5YjFjMzg4Ny01YTA0LTQ4ZjYtYWM2YS0zZDU5ZGYwOGE2NWQiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc0OTk2ODY3MSwiZXhwIjoxNzUwMDU1MDcxfQ.tvDfkp3v3dRiAlab6Z495isnEnM6i-xLC_-7AI-gDwo
-@userId = 9b1c3887-5a04-48f6-ac6a-3d59df08a65d
+@userToken =  
+@userId =  
 
-@projectId = 7bab9c1a-476a-4e0b-aced-a5b0e203c99f
+@projectId = 
 ### Create a new project 
 POST {{baseUrl}}/projects
 Content-Type: {{contentType}}

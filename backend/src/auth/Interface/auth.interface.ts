@@ -13,7 +13,7 @@ export interface ApiResponse<T> {
 export interface UserResponse {
   id: string;
   email: string;
-  role: string; 
+  role: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

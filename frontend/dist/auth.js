@@ -1,55 +1,62 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const emailInput = document.getElementById('loginEmail');
     const passwordInput = document.getElementById('loginPassword');
     const errorElement = document.getElementById('loginError');
-    if (!emailInput || !passwordInput) {
-        console.error('Email or Password input not found in DOM');
+    if (!loginForm || !emailInput || !passwordInput || !errorElement) {
+        console.error('Required form elements not found');
         return;
     }
-    loginForm === null || loginForm === void 0 ? void 0 : loginForm.addEventListener('submit', (e) => __awaiter(void 0, void 0, void 0, function* () {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        errorElement.textContent = '';
         const payload = {
             email: emailInput.value,
             password: passwordInput.value,
         };
+        const submitButton = loginForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Logging in...';
         try {
-            const res = yield fetch('http://localhost:3000/auth/login', {
+            const res = await fetch('http://localhost:3000/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
             });
+            const responseData = await res.json();
             if (!res.ok) {
-                const errorData = yield res.json();
-                throw new Error(errorData.message || 'Login failed');
+                throw new Error(responseData.message || 'Login failed');
             }
-            const data = yield res.json();
-            localStorage.setItem('token', data.access_token);
-            localStorage.setItem('role', data.User.role);
-            localStorage.setItem('userId', data.User.id.toString());
-            if (data.User.role === 'ADMIN') {
-                window.location.href = './admin.html';
+            if (!responseData.data) {
+                throw new Error('Invalid response format');
+            }
+            const { access_token, user } = responseData.data;
+            // Store auth data
+            localStorage.setItem('token', access_token);
+            localStorage.setItem('role', user.role);
+            localStorage.setItem('userId', user.id);
+            localStorage.setItem('userEmail', user.email);
+            // Redirect based on role
+            if (user.role === 'ADMIN') {
+                window.location.href = 'admin.html';
             }
             else {
-                window.location.href = './user.html';
+                window.location.href = 'user.html';
             }
         }
         catch (error) {
+            console.error('Login error:', error);
             errorElement.textContent = error.message || 'An error occurred during login';
+            errorElement.classList.add('show');
         }
-    }));
+        finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+        }
+    });
     const tabButtons = document.querySelectorAll('.tab-btn');
     const forms = document.querySelectorAll('.auth-forms form');
     tabButtons.forEach((btn) => {

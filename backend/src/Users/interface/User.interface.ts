@@ -1,4 +1,4 @@
-import { Permission, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 export interface User {
   id: string;
@@ -7,7 +7,6 @@ export interface User {
   password: string;
   profileImage?: string;
   role: UserRole;
-  permissions: Permission[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -36,8 +36,9 @@ let ProjectsService = class ProjectsService {
                 data: {
                     name: createProjectDto.name,
                     description: createProjectDto.description,
+                    startDate: new Date(),
                     endDate: createProjectDto.endDate,
-                    status: client_1.ProjectStatus.PENDING,
+                    status: client_1.ProjectStatus.IN_PROGRESS,
                     emailStatus: client_1.EmailStatus.NOT_SENT,
                 },
                 include: {
@@ -180,7 +181,7 @@ let ProjectsService = class ProjectsService {
                     if (project.status === client_1.ProjectStatus.COMPLETED) {
                         throw new common_1.ConflictException('Project is already marked as completed');
                     }
-                    if (project.status === client_1.ProjectStatus.PENDING) {
+                    if (project.status === client_1.ProjectStatus.ON_HOLD) {
                         throw new common_1.ConflictException('Project must be in progress before completion');
                     }
                     await this.emailService.sendProjectCompletionEmail(project.name, project.assignee?.name ?? 'Unknown');

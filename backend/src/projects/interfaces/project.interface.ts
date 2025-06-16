@@ -4,6 +4,7 @@ export interface Project {
   id: string;
   name: string;
   description?: string | null;
+  startDate: Date;
   endDate: Date;
   status: ProjectStatus;
   assigneeId?: string | null;

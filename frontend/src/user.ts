@@ -1,21 +1,16 @@
-type Project = {
-  id: string;
-  name: string;
-  description?: string;
-  endDate: string;
-  status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
-  createdAt: string;
-};
+import { Project } from './types';
 
 (() => {
   const role = localStorage.getItem('role');
   if (role !== 'USER') {
     window.location.href = 'auth.html';
   }
-
 })();
+
 function renderProjects(projects: Project[]): void {
-  const container = document.getElementById("projectsGrid")!;
+  const container = document.getElementById("projectsGrid");
+  if (!container) return;
+  
   container.innerHTML = "";
 
   if (projects.length === 0) {
@@ -39,11 +34,10 @@ function renderProjects(projects: Project[]): void {
 
   container.appendChild(card);
 
-
   const completeBtn = document.getElementById("completeProjectBtn");
   if (completeBtn) {
-    completeBtn.addEventListener("click", async () => {
-      markProjectAsCompleted(project.id);
+    completeBtn.addEventListener("click", () => {
+      void markProjectAsCompleted(project.id);
     });
   }
 }

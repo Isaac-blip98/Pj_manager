@@ -41,8 +41,9 @@ export class ProjectsService {
         data: {
           name: createProjectDto.name,
           description: createProjectDto.description,
+          startDate: new Date(),
           endDate: createProjectDto.endDate,
-          status: ProjectStatus.PENDING,
+          status: ProjectStatus.IN_PROGRESS,
           emailStatus: EmailStatus.NOT_SENT,
         },
         include: {
@@ -222,7 +223,7 @@ export class ProjectsService {
               'Project is already marked as completed',
             );
           }
-          if (project.status === ProjectStatus.PENDING) {
+          if (project.status === ProjectStatus.ON_HOLD) {
             throw new ConflictException(
               'Project must be in progress before completion',
             );
