@@ -1,49 +1,45 @@
-@authToken = 
-# @authToken =   
+### User Tests
+
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+@adminToken = 
+@adminId =  
+@userId =  
+
+### Get all users 
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
 
 
-### CREATE USER
-POST http://localhost:3000/users
-Content-Type: application/json
-
-{
-  "name": "Jane Doe",
-  "email": "janedoe@gmail.com",
-  "password": "hjdj9589",
-  "role": "USER"
-}
-
-### CREATE ADMIN USER
-POST http://localhost:3000/users
-Content-Type: application/json
-
-{
-  "name": "Admin User",
-  "email": "admin@example.com",
-  "password": "admin123456",
-  "role": "ADMIN"
-}
-
-### GET ALL USERS
-GET http://localhost:3000/users
-Authorization: Bearer{{@authToken}}
+### Get user by ID 
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
 
 
-### GET USERS BY ROLE - USER
-GET http://localhost:3000/users/role/USER
-
-### GET USERS BY ROLE - ADMIN
-GET http://localhost:3000/users/role/ADMIN
-
-### GET SINGLE USER BY ID
-GET http://localhost:3000/users/76122294-4672-4235-a24e-11fea07ea405
-
-### UPDATE USER
-PATCH http://localhost:3000/users/76122294-4672-4235-a24e-11fea07ea405
-Content-Type: application/json
+### Update user profile image
+PUT {{baseUrl}}/users/{{adminId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{adminToken}}
 
 {
-  "firstName": "Jane",
-  "lastName": "Smith",
-  "email": "jane.smithgmail.com"
+    "profileImage": "https://example.com/new-image.jpg"
 }
+
+
+### Update user role
+PUT {{baseUrl}}/users/{{userId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{adminToken}}
+
+{
+    "role": "USER"
+}
+
+
+### Delete user
+DELETE {{baseUrl}}/users/{{userId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{adminToken}}

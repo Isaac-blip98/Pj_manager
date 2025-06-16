@@ -6,6 +6,7 @@ import {
   IsEnum,
   MinLength,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { UserRole } from '@prisma/client';
@@ -19,7 +20,9 @@ export class CreateUserDto {
 
   @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsNotEmpty({ message: 'Email is required' })
-  @Transform(({ value }) => value?.toLowerCase().trim())
+  @Transform(({ value }): string =>
+    typeof value === 'string' ? value.toLowerCase().trim() : '',
+  )
   email: string = '';
 
   @IsOptional()
@@ -31,5 +34,6 @@ export class CreateUserDto {
   @IsEnum(UserRole, {
     message: `Role must be one of: ${Object.values(UserRole).join(', ')}`,
   })
-  role?: UserRole;
+  @ValidateIf((o: CreateUserDto) => o.role !== UserRole.ADMIN)
+  role?: UserRole = UserRole.USER;
 }

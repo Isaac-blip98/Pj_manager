@@ -3,7 +3,7 @@
 
 
 @adminToken = 
-@adminId =  
+@adminId = 
 
 @userToken =  
 @userId =  
@@ -15,8 +15,8 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{adminToken}}
 
 {
-    "name": "Project now",
-    "description": "Description now",
+    "name": "Less Project",
+    "description": "Less Description",
     "endDate": "2025-07-31T23:59:59Z"
 }
 
@@ -119,4 +119,3 @@ Authorization: Bearer {{adminToken}}
 
 ### Try to access project without token  
 GET {{baseUrl}}/projects/{{projectId}}
-

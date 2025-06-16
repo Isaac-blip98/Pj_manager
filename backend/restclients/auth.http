@@ -1,8 +1,42 @@
-###POST
-POST http://localhost:3000/auth/login
-Content-Type: application/json
+### Authentication API Endpoints
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Register new user
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
 
 {
-  "email": "admin@example.com",
-  "password": "admin123456"
+    "name": "Markide 4",
+    "email": "markide4@gmail.com",
+    "password": "password123"
+}
+
+### Attempt to create admin user  
+POST {{baseUrl}}/users
+Content-Type: {{contentType}}
+
+{
+    "name": "Admin User",
+    "email": "admin@example.com",
+    "password": "admin123456",
+    "role": "ADMIN"
+}
+
+### Login as admin
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "markndwiga@gmail.com",
+    "password": "Admin_1234"
+}
+
+### Login as user
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "markide4@gmail.com",
+    "password": "password123"
 }

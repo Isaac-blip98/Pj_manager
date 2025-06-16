@@ -1,83 +1,71 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto } from '../Users/dtos/createuser.dto';
-import { UpdateUserDto } from '../Users/dtos/updateuser.dto';
-import { UserResponseDto } from '../Users/dtos/user-response.dto';
+import { CreateUserDto } from './dtos/createuser.dto';
+import { UpdateUserDto } from './dtos/updateuser.dto';
+import { UserResponseDto } from './dtos/user-response.dto';
+import { ApiResponse } from '../common/interfaces/api-response.interface';
+import { PaginationOptions } from '../common/interfaces/pagination-options.interface';
 import * as bcrypt from 'bcryptjs';
-import { CloudinaryService } from '../shared/utils/cloudinary/cloudinary.service';
 import { LoginDto } from './dtos/logindto';
 import { Prisma, UserRole } from '@prisma/client';
 
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
-
-interface PaginationOptions {
-  page?: number;
-  limit?: number;
-}
-
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  private sanitizeUser(user: any): UserResponseDto {
+  private sanitizeUser(user: Record<string, any>): UserResponseDto {
     const { password, ...rest } = user;
     return rest as UserResponseDto;
   }
 
-
-async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
-  if (!data.password) {
-    throw new BadRequestException('Password is required');
-  }
-
-  if (data.password.length < 8) {
-    throw new BadRequestException(
-      'Password must be at least 8 characters long',
-    );
-  }
-
-  if (data.role && !Object.values(UserRole).includes(data.role as UserRole)) {
-    throw new BadRequestException('Invalid role provided');
-  }
-
-  const hashedPassword = await bcrypt.hash(data.password, 12);
-
-  try {
-    const user = await this.prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        password: hashedPassword,
-        role: data.role ?? UserRole.USER, // default role if not provided
-      },
-    });
-
-    return {
-      success: true,
-      message: 'User created successfully',
-      data: this.sanitizeUser(user),
-    };
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-        throw new BadRequestException('Email already exists');
-      }
+  async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
+    if (data.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Admin users can not be created');
     }
-    throw new BadRequestException('Failed to create user');
+
+    if (!data.password) {
+      throw new BadRequestException('Password is required');
+    }
+
+    if (data.password.length < 8) {
+      throw new BadRequestException(
+        'Password must be at least 8 characters long',
+      );
+    }
+
+    if (data.role && !Object.values(UserRole).includes(data.role)) {
+      throw new BadRequestException('Invalid role provided');
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 12);
+
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          name: data.name,
+          email: data.email,
+          password: hashedPassword,
+          role: data.role ?? UserRole.USER,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'User created successfully',
+        data: this.sanitizeUser(user),
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to create user');
+    }
   }
-}
 
   async findAll(
     options: PaginationOptions = {},
@@ -85,7 +73,7 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
     const { page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
 
-    const [users, total] = await Promise.all([
+    const [users] = await Promise.all([
       this.prisma.user.findMany({
         where: { isActive: true },
         skip,
@@ -115,7 +103,7 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
     const { page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
 
-    const [users, total] = await Promise.all([
+    const [users] = await Promise.all([
       this.prisma.user.findMany({
         where: {
           isActive: true,
@@ -192,22 +180,19 @@ async create(data: CreateUserDto): Promise<ApiResponse<UserResponseDto>> {
       throw new NotFoundException('User not found');
     }
 
-    const updateData: Prisma.UserUpdateInput = {};
+    // Check if any changes are being made
+    const hasNoChanges = Object.keys(data).every((key) => {
+      return existingUser[key] === data[key];
+    });
 
-    if (data.name) updateData.name = data.name;
-    if (data.email) updateData.email = data.email;
-
-    if (data.password) {
-      if (data.password.length < 8) {
-        throw new BadRequestException(
-          'Password must be at least 8 characters long',
-        );
-      }
-      updateData.password = await bcrypt.hash(data.password, 12);
+    if (hasNoChanges) {
+      throw new BadRequestException('No changes detected');
     }
-if (data.role && !Object.values(UserRole).includes(data.role as UserRole)) {
-  throw new BadRequestException('Invalid role');
-}
+
+    const updateData: Prisma.UserUpdateInput = {
+      ...data,
+      updatedAt: new Date(),
+    };
 
     try {
       const updatedUser = await this.prisma.user.update({
@@ -218,48 +203,56 @@ if (data.role && !Object.values(UserRole).includes(data.role as UserRole)) {
       return {
         success: true,
         message: 'User updated successfully',
-        data: this.sanitizeUser(updatedUser),
+        data: {
+          ...this.sanitizeUser(updatedUser),
+          profileImage: updatedUser.profileImage || undefined,
+        },
       };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new BadRequestException('Email already exists');
-        }
-        if (error.code === 'P2025') {
-          throw new NotFoundException('User not found');
-        }
-      }
       throw new BadRequestException('Failed to update user');
     }
   }
 
-  async remove(id: string): Promise<ApiResponse<{ message: string }>> {
+  async remove(id: string): Promise<ApiResponse<null>> {
     if (!id) {
       throw new BadRequestException('User ID is required');
     }
 
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        include: {
+          projects: true,
+        },
+      });
 
       if (!user) {
         throw new NotFoundException('User not found');
       }
 
-      await this.prisma.user.update({
-        where: { id },
-        data: { isActive: false },
+      // Start a transaction to handle deletion
+      await this.prisma.$transaction(async (prisma) => {
+        await prisma.project.updateMany({
+          where: { assigneeId: id },
+          data: { assigneeId: null },
+        });
+
+        // Finally delete the user
+        await prisma.user.delete({
+          where: { id },
+        });
       });
 
       return {
         success: true,
-        message: 'User deactivated successfully',
-        data: { message: 'User deactivated successfully' },
+        message: `User ${id} has been deleted successfully!`,
+        data: null,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Failed to deactivate user');
+      throw new BadRequestException('Failed to delete user');
     }
   }
 
@@ -288,35 +281,5 @@ if (data.role && !Object.values(UserRole).includes(data.role as UserRole)) {
       message: 'Login successful',
       data: this.sanitizeUser(user),
     };
-  }
-
-  async uploadProfileImage(
-    id: string,
-    file: Express.Multer.File,
-  ): Promise<ApiResponse<UserResponseDto>> {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
-
-    if (!user || !user.isActive) {
-      throw new NotFoundException('User not found');
-    }
-
-    try {
-      const uploaded = await this.cloudinaryService.upload(file);
-
-      const updatedUser = await this.prisma.user.update({
-        where: { id },
-        data: { profileImage: uploaded.secure_url },
-      });
-
-      return {
-        success: true,
-        message: 'Profile image uploaded successfully',
-        data: this.sanitizeUser(updatedUser),
-      };
-    } catch (error) {
-      throw new BadRequestException('Failed to upload profile image');
-    }
   }
 }

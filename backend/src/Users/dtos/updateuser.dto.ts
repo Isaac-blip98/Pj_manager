@@ -16,12 +16,16 @@ export class UpdateUserDto {
   @IsString({ message: 'Name must be a string' })
   @MinLength(2, { message: 'Name must be at least 2 characters long' })
   @MaxLength(50, { message: 'Name must not exceed 50 characters' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   name?: string;
 
   @IsOptional()
   @IsEmail({}, { message: 'Please provide a valid email address' })
-  @Transform(({ value }) => value?.toLowerCase().trim())
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.toLowerCase().trim() : value,
+  )
   email?: string;
 
   @IsOptional()
