@@ -2,7 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { BaseBackgroundService } from './base.background.service';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { EmailStatus } from '@prisma/client';
+// import { EmailStatus as PrismaEmailStatus } from '@prisma/client';
+export enum EmailStatus {
+  SENT = 'SENT',
+  NOT_SENT = 'NOT_SENT',
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  FAILED = 'FAILED',
+}
 import { EmailOptions } from '../email/interfaces/email.interface';
 import { EmailQueueItem } from './types';
 
