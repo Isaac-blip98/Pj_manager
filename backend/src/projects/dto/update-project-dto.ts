@@ -1,28 +1,19 @@
-import { IsString, IsOptional, IsDateString, IsBoolean } from 'class-validator';
-import { ProjectStatus } from '../interfaces/project.interface';
+import { IsOptional, IsString, IsUUID, IsDateString } from 'class-validator';
 
 export class UpdateProjectDto {
-  @IsString()
   @IsOptional()
+  @IsString()
   name?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 
+  @IsOptional()
   @IsDateString()
-  @IsOptional()
-  endDate?: Date;
+  endDate?: string;
 
-  @IsString()
   @IsOptional()
+  @IsUUID()
   assigneeId?: string;
-
-  @IsString()
-  @IsOptional()
-  status?: ProjectStatus;
-
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
 }

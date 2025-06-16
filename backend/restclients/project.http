@@ -1,121 +1,49 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
 
-
 @adminToken = 
 @adminId = 
 
-@userToken =  
+@userToken = 
 @userId =  
 
-@projectId = 
-### Create a new project 
+@projectId =  
+
+### Create a new project
 POST {{baseUrl}}/projects
-Content-Type: {{contentType}}
 Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
 
 {
-    "name": "Less Project",
-    "description": "Less Description",
-    "endDate": "2025-07-31T23:59:59Z"
+    "name": "New Project",
+    "description": "Easy Project",
+    "endDate": "2025-06-30T23:59:59Z"
 }
 
 
-### Get all projects as admin
+
+### Get all projects
 GET {{baseUrl}}/projects
 Authorization: Bearer {{adminToken}}
 
-### Get all projects as user
-GET {{baseUrl}}/projects
-Authorization: Bearer {{userToken}}
-
-### Get specific project as admin
+### Get project by ID
 GET {{baseUrl}}/projects/{{projectId}}
 Authorization: Bearer {{adminToken}}
 
-### Get specific project as user
-GET {{baseUrl}}/projects/{{projectId}}
-Authorization: Bearer {{userToken}}
-
-### Assign project to user  
+### Assign project to user
 PUT {{baseUrl}}/projects/{{projectId}}
-Content-Type: {{contentType}}
 Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
 
 {
     "assigneeId": "{{userId}}"
 }
 
-### Update project status to IN_PROGRESS (User)
-PUT {{baseUrl}}/projects/{{projectId}}
-Content-Type: {{contentType}}
+### Mark project as completed
+PATCH {{baseUrl}}/projects/{{projectId}}/complete
 Authorization: Bearer {{userToken}}
-
-{
-    "status": "IN_PROGRESS"
-}
-
-### Update project status to COMPLETED (User)
-PUT {{baseUrl}}/projects/{{projectId}}
 Content-Type: {{contentType}}
-Authorization: Bearer {{userToken}}
 
-{
-    "status": "COMPLETED"
-}
-
-### Try to update project as unauthorized user  
-PUT {{baseUrl}}/projects/{{projectId}}
-Content-Type: {{contentType}}
-Authorization: Bearer wrongtoken
-
-{
-    "status": "COMPLETED"
-}
-
-### Try to assign project as user  
-PUT {{baseUrl}}/projects/{{projectId}}
-Content-Type: {{contentType}}
-Authorization: Bearer {{userToken}}
-
-{
-    "assigneeId": "some-other-user-id"
-}
-
-### Delete project 
+### Delete project
 DELETE {{baseUrl}}/projects/{{projectId}}
 Authorization: Bearer {{adminToken}}
-
-### Try to delete project as user  
-DELETE {{baseUrl}}/projects/{{projectId}}
-Authorization: Bearer {{userToken}}
-
-### Create project without required fields  
-POST {{baseUrl}}/projects
-Content-Type: {{contentType}}
-Authorization: Bearer {{adminToken}}
-
-{
-    "name": ""
-}
-
-### Try to assign project to non-existent user  
-PUT {{baseUrl}}/projects/{{projectId}}
-Content-Type: {{contentType}}
-Authorization: Bearer {{adminToken}}
-
-{
-    "assigneeId": "non-existent-user-id"
-}
-
-### Try to update non-existent project  
-PUT {{baseUrl}}/projects/non-existent-id
-Content-Type: {{contentType}}
-Authorization: Bearer {{adminToken}}
-
-{
-    "status": "COMPLETED"
-}
-
-### Try to access project without token  
-GET {{baseUrl}}/projects/{{projectId}}

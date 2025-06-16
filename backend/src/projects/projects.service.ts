@@ -84,17 +84,65 @@ export class ProjectsService {
     };
   }
 
-  async markAsCompleted(projectId: string): Promise<ApiResponse<Project>> {
-    const project = await this.prisma.project.update({
-      where: { id: projectId },
-      data: { status: 'COMPLETED' },
-    });
+  async markAsCompleted(
+    id: string,
+    userId: string,
+    userRole: UserRole,
+  ): Promise<ApiResponse<ProjectResponseDto>> {
+    const project = await this.findOne(id, userRole, userId);
 
-    return {
-      success: true,
-      message: 'Project marked as completed',
-      data: project,
-    };
+    if (userRole === UserRole.USER && project.assigneeId !== userId) {
+      throw new ForbiddenException(
+        'You can only complete your assigned projects',
+      );
+    }
+
+    if (project.status === ProjectStatus.COMPLETED) {
+      throw new ConflictException('Project is already completed');
+    }
+
+    try {
+      const updatedProject = await this.prisma.project.update({
+        where: { id },
+        data: {
+          status: ProjectStatus.COMPLETED,
+          updatedAt: new Date(),
+        },
+        include: {
+          assignee: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      // Send completion email to admin with proper null check
+      const assigneeName = updatedProject.assignee?.name ?? 'Unknown User';
+      await this.emailService.sendProjectCompletionEmail(
+        updatedProject.name,
+        assigneeName,
+      );
+
+      return {
+        success: true,
+        message: 'Project marked as completed successfully',
+        data: updatedProject,
+      };
+    } catch (error) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof ConflictException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Failed to complete project: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   async findAll(
@@ -156,7 +204,9 @@ export class ProjectsService {
         throw error;
       }
       throw new InternalServerErrorException(
-        `Failed to retrieve projects: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to retrieve projects: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       );
     }
   }
@@ -205,71 +255,36 @@ export class ProjectsService {
     }
 
     try {
-      if (updateProjectDto.status) {
-        if (updateProjectDto.status === ProjectStatus.IN_PROGRESS) {
-          if (project.status === ProjectStatus.IN_PROGRESS) {
-            throw new ConflictException('Project is already in progress');
-          }
-          if (project.status === ProjectStatus.COMPLETED) {
-            throw new ConflictException(
-              'Cannot set completed project to in progress',
-            );
-          }
-        }
-
-        if (updateProjectDto.status === ProjectStatus.COMPLETED) {
-          if (project.status === ProjectStatus.COMPLETED) {
-            throw new ConflictException(
-              'Project is already marked as completed',
-            );
-          }
-          if (project.status === ProjectStatus.ON_HOLD) {
-            throw new ConflictException(
-              'Project must be in progress before completion',
-            );
-          }
-
-          await this.emailService.sendProjectCompletionEmail(
-            project.name,
-            project.assignee?.name ?? 'Unknown',
-          );
-        }
-      }
-
+      // Handle project assignment
       if (updateProjectDto.assigneeId) {
         if (userRole !== UserRole.ADMIN) {
           throw new ForbiddenException('Only admins can assign projects');
         }
 
-        if (project.assigneeId) {
-          throw new ConflictException('Project has already been assigned');
-        }
-
-        const existingAssignment = await this.prisma.project.findFirst({
-          where: {
-            assigneeId: updateProjectDto.assigneeId,
-            status: { not: ProjectStatus.COMPLETED },
-          },
-        });
-
-        if (existingAssignment) {
-          throw new ConflictException(
-            'User already has an active project. Must complete current project first.',
-          );
-        }
-
         const assignee = await this.prisma.user.findUnique({
           where: { id: updateProjectDto.assigneeId },
-          select: {
-            email: true,
-            name: true,
-          },
+          select: { email: true, name: true },
         });
 
         if (!assignee) {
           throw new NotFoundException('Assignee not found');
         }
 
+        // Check if user already has an active project
+        const existingProject = await this.prisma.project.findFirst({
+          where: {
+            assigneeId: updateProjectDto.assigneeId,
+            status: { not: ProjectStatus.COMPLETED },
+          },
+        });
+
+        if (existingProject) {
+          throw new ConflictException(
+            'User already has an active project. Must complete current project first.',
+          );
+        }
+
+        // Send assignment email
         const emailSent = await this.emailService.sendProjectAssignmentEmail(
           assignee,
           project.name,
@@ -297,10 +312,11 @@ export class ProjectsService {
           message: `Project assigned successfully${
             !emailSent ? ' (email notification failed)' : ''
           }`,
-          data: updatedProject as ProjectResponseDto,
+          data: updatedProject,
         };
       }
 
+      // Handle other updates
       const updatedProject = await this.prisma.project.update({
         where: { id },
         data: updateProjectDto,
@@ -318,7 +334,7 @@ export class ProjectsService {
       return {
         success: true,
         message: 'Project updated successfully',
-        data: updatedProject as ProjectResponseDto,
+        data: updatedProject,
       };
     } catch (error) {
       if (

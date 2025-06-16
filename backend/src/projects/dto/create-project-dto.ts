@@ -1,23 +1,23 @@
 import {
-  IsString,
   IsNotEmpty,
-  IsDateString,
+  IsString,
   IsOptional,
+  IsDateString,
 } from 'class-validator';
 import { ProjectStatus } from '../interfaces/project.interface';
 
 export class CreateProjectDto {
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   name!: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 
-  @IsDateString()
   @IsNotEmpty()
-  endDate!: Date;
+  @IsDateString()
+  endDate!: string;
 
   @IsString()
   @IsOptional()
