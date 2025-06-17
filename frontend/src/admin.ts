@@ -144,41 +144,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-const projectForm = document.getElementById("projectForm") as HTMLFormElement;
+// When creating a project, do NOT include status in the payload
+document.addEventListener('DOMContentLoaded', () => {
+  // ...other initializations...
 
-projectForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  const projectForm = document.getElementById("projectForm") as HTMLFormElement;
+  if (projectForm) {
+    projectForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-  const token = localStorage.getItem("token");
-  if (!token) return;
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-  const name = (document.getElementById("projectName") as HTMLInputElement).value;
-  const assigneeId = (document.getElementById("projectAssignee") as HTMLSelectElement).value;
-  const status = (document.getElementById("projectStatus") as HTMLSelectElement).value;
+      const name = (document.getElementById("projectName") as HTMLInputElement).value;
+      const assigneeId = (document.getElementById("projectAssignee") as HTMLSelectElement).value || null;
+      const endDateInput = document.getElementById("projectEndDate") as HTMLInputElement | null;
 
-  const res = await fetch("http://localhost:3000/projects", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ name, assignedUserId: assigneeId, status })
-  });
+      if (!endDateInput) {
+        alert("End date field is missing in the form.");
+        return;
+      }
 
-  if (!res.ok) {
-    alert("Failed to create project");
-    return;
+      const endDateValue = endDateInput.value;
+
+      // Validate endDate
+      if (!endDateValue) {
+        alert("End date is required.");
+        endDateInput.focus();
+        return;
+      }
+      // Convert to ISO 8601 string
+      const endDateISO = new Date(endDateValue).toISOString();
+
+      const payload: Record<string, any> = {
+        name,
+        assigneeId: assigneeId || undefined,
+        endDate: endDateISO,
+      };
+
+      Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+
+      const res = await fetch("http://localhost:3000/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Failed to create project");
+        return;
+      }
+
+      alert("Project created successfully");
+      projectForm.reset();
+      const projectFormContainer = document.getElementById("projectFormContainer") as HTMLDivElement;
+      if (projectFormContainer) {
+        projectFormContainer.classList.add("hidden");
+      }
+      fetchProjects(); // Refresh project table
+    });
   }
-
-  alert("Project created successfully");
-  projectForm.reset();
-  const projectFormContainer = document.getElementById("projectFormContainer") as HTMLDivElement;
-  if (projectFormContainer) {
-    projectFormContainer.classList.add("hidden");
-  }
-  fetchAndRenderProjects(); // Refresh project table
 });
-
 
 // Fetch users with USER role and populate the dropdown
 async function populateUserDropdown(): Promise<void> {
