@@ -121,7 +121,6 @@ export class ProjectsService {
         },
       });
 
-      // Send completion email to admin with proper null check
       const assigneeName = updatedProject.assignee?.name ?? 'Unknown User';
       await this.emailService.sendProjectCompletionEmail(
         updatedProject.name,
@@ -257,7 +256,6 @@ export class ProjectsService {
     }
 
     try {
-      // Handle project assignment
       if (updateProjectDto.assigneeId) {
         if (userRole !== UserRole.ADMIN) {
           throw new ForbiddenException('Only admins can assign projects');
@@ -272,7 +270,6 @@ export class ProjectsService {
           throw new NotFoundException('Assignee not found');
         }
 
-        // Check if user already has an active project
         const existingProject = await this.prisma.project.findFirst({
           where: {
             assigneeId: updateProjectDto.assigneeId,
@@ -286,7 +283,6 @@ export class ProjectsService {
           );
         }
 
-        // Send assignment email
         const emailSent = await this.emailService.sendProjectAssignmentEmail(
           assignee,
           project.name,
