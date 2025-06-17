@@ -1,6 +1,5 @@
 import { Project } from './types';
 
-// Redirect non-USER roles to login
 (() => {
   const role = localStorage.getItem('role');
   if (role !== 'USER') {
@@ -8,7 +7,6 @@ import { Project } from './types';
   }
 })();
 
-// Decode JWT to extract user info
 function decodeJWT(token: string): any {
   try {
     const payload = token.split('.')[1];
@@ -30,7 +28,6 @@ function displayUserInfo(): void {
   if (userEmail) userEmail.textContent = payload.email ?? '';
 }
 
-// Fetch and render the logged-in user's assigned project
 async function fetchUserProject(): Promise<void> {
   const token = localStorage.getItem('token');
   if (!token) return;
@@ -46,11 +43,10 @@ async function fetchUserProject(): Promise<void> {
     const data = await res.json();
 
     if (!res.ok || !data.success) {
-      renderProjects([]); // No project assigned
+      renderProjects([]);
       return;
     }
 
-    // The backend should return a single project or null
     renderProjects(data.data ? [data.data] : []);
   } catch (err: any) {
     renderProjects([]);
@@ -58,7 +54,6 @@ async function fetchUserProject(): Promise<void> {
   }
 }
 
-// Fetch all projects assigned to the user
 async function fetchUserProjects(): Promise<Project[]> {
   const token = localStorage.getItem('token');
   if (!token) return [];
@@ -79,7 +74,6 @@ async function fetchUserProjects(): Promise<Project[]> {
   }
 }
 
-// Render projects in the dashboard
 function renderProjects(projects: Project[]): void {
   const projectsGrid = document.getElementById('projectsGrid');
   if (!projectsGrid) return;
@@ -105,7 +99,6 @@ function renderProjects(projects: Project[]): void {
     projectsGrid.appendChild(projectDiv);
   });
 
-  // Add event listeners for completion buttons
   projectsGrid.querySelectorAll('button[data-project-id]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const projectId = (e.target as HTMLButtonElement).getAttribute('data-project-id');
@@ -152,9 +145,8 @@ async function markProjectAsCompleted(projectId: string): Promise<void> {
       throw new Error(data.message || 'Failed to complete project');
     }
 
-    // Success message and UI update
     alert('Project marked as completed! Admin has been notified.');
-    await renderFilteredProjects(); // Refresh the projects list
+    await renderFilteredProjects(); 
 
   } catch (error) {
     console.error('Error completing project:', error);
@@ -162,7 +154,6 @@ async function markProjectAsCompleted(projectId: string): Promise<void> {
   }
 }
 
-// Setup sidebar navigation
 function setupSidebarNavigation(): void {
   const navLinks = document.querySelectorAll<HTMLAnchorElement>('.sidebar-nav a');
   const sections = document.querySelectorAll<HTMLElement>('.dashboard-section');
@@ -183,7 +174,6 @@ function setupSidebarNavigation(): void {
   });
 }
 
-// Setup logout
 function setupLogout(): void {
   const logoutBtn = document.getElementById('logoutBtn');
   logoutBtn?.addEventListener('click', () => {
@@ -192,7 +182,6 @@ function setupLogout(): void {
   });
 }
 
-// On page load, show all projects
 document.addEventListener("DOMContentLoaded", () => {
   displayUserInfo();
   renderFilteredProjects();
