@@ -70,16 +70,16 @@ export class ProjectsService {
     }
   }
 
-  async getUserProject(userId: string): Promise<ApiResponse<Project | null>> {
+  async getUserProject(userId: string): Promise<ApiResponse<ProjectResponseDto | null>> {
     const project = await this.prisma.project.findFirst({
-      where: { assigneeId: userId },
+      where: {
+        assigneeId: userId,
+        status: { not: 'COMPLETED' },
+      },
     });
-
     return {
       success: true,
-      message: project
-        ? 'Project retrieved successfully'
-        : 'No project assigned',
+      message: project ? 'Project found' : 'No active project',
       data: project,
     };
   }
@@ -388,5 +388,85 @@ export class ProjectsService {
         `Failed to delete project: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  }
+
+  async assignProject(
+    projectId: string,
+    userId: string | null,
+  ): Promise<ApiResponse<ProjectResponseDto>> {
+    try {
+      // Check if project exists
+      const project = await this.prisma.project.findUnique({
+        where: { id: projectId },
+      });
+      if (!project) {
+        throw new NotFoundException(`Project with ID ${projectId} not found`);
+      }
+
+      // Check if user exists
+      if (userId) {
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+        });
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+        // Check if user already has an active project
+        const existingProject = await this.prisma.project.findFirst({
+          where: {
+            assigneeId: userId,
+            status: { not: ProjectStatus.COMPLETED },
+          },
+        });
+        if (existingProject) {
+          throw new ConflictException(
+            'User already has an active project. Must complete current project first.',
+          );
+        }
+      }
+
+      // Assign or unassign
+      const updated = await this.prisma.project.update({
+        where: { id: projectId },
+        data: { assigneeId: userId || null },
+        include: {
+          assignee: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return {
+        success: true,
+        message: userId ? 'Project assigned' : 'Project unassigned',
+        data: updated,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  }
+
+  async getAllUserProjects(userId: string): Promise<ApiResponse<ProjectResponseDto[]>> {
+    const projects = await this.prisma.project.findMany({
+      where: { assigneeId: userId },
+      orderBy: { createdAt: 'desc' }
+    });
+    return {
+      success: true,
+      message: 'All user projects fetched',
+      data: projects,
+    };
   }
 }
