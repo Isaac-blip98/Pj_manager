@@ -81,7 +81,6 @@ if (registerForm) {
 
       const { access_token, user } = responseData.data;
 
-      // Store login info and redirect
       localStorage.setItem('token', access_token);
       localStorage.setItem('role', user.role);
       localStorage.setItem('userId', user.id);
@@ -142,13 +141,11 @@ if (registerForm) {
 
       const { access_token, user } = responseData.data; 
 
-      // Store auth data
       localStorage.setItem('token', access_token);
       localStorage.setItem('role', user.role);
       localStorage.setItem('userId', user.id);
       localStorage.setItem('userEmail', user.email);
 
-      // Redirect based on role
       if (user.role === 'ADMIN') {
         window.location.href = 'admin.html'; 
       } else {

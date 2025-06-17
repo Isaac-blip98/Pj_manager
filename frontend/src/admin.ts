@@ -1,6 +1,5 @@
 import type { User, Project, AdminProfile } from './types';
 
-// Initialize admin data
 let adminProfile: AdminProfile | null = null;
 let users: User[] = [];
 let projects: Project[] = [];
@@ -12,7 +11,6 @@ const sections = [
   { id: "settings", title: "Settings", icon: "fas fa-cog" }
 ];
 
-// Authentication check
 function checkAuth(): void {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
@@ -23,7 +21,6 @@ function checkAuth(): void {
   }
 }
 
-// Fetch admin profile
 async function fetchAdminProfile(): Promise<void> {
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('userId');
@@ -49,7 +46,6 @@ async function fetchAdminProfile(): Promise<void> {
       throw new Error('No profile data received');
     }
 
-    // Update UI
     const nameElement = document.getElementById('adminName');
     const emailElement = document.getElementById('adminEmail');
     const userInfoElement = document.querySelector('.user-info');
@@ -58,7 +54,6 @@ async function fetchAdminProfile(): Promise<void> {
       nameElement.textContent = adminProfile.name;
       emailElement.textContent = adminProfile.email;
       
-      // Check if profile image already exists
       let profileImage = userInfoElement.querySelector('.profile-image') as HTMLImageElement;
       if (!profileImage) {
         profileImage = document.createElement('img');
@@ -76,7 +71,6 @@ async function fetchAdminProfile(): Promise<void> {
   }
 }
 
-// Fetch users and filter out admins globally
 async function fetchUsers(): Promise<void> {
   const token = localStorage.getItem("token");
   if (!token) return;
@@ -93,7 +87,6 @@ async function fetchUsers(): Promise<void> {
       throw new Error(data.message || "Failed to fetch users");
     }
 
-    // Only keep users with USER role
     users = data.data.filter((user: { role: string }) => user.role === "USER");
     renderUsers();
   } catch (err: any) {
@@ -103,7 +96,6 @@ async function fetchUsers(): Promise<void> {
   }
 }
 
-// Show project form and populate users when "Add New Project" is clicked
 document.addEventListener('DOMContentLoaded', () => {
   const addProjectBtn = document.getElementById('addProjectBtn') as HTMLButtonElement;
   const formContainer = document.getElementById('projectFormContainer') as HTMLDivElement;
@@ -113,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (addProjectBtn && formContainer && cancelBtn && projectForm) {
     addProjectBtn.addEventListener('click', () => {
       formContainer.classList.remove('hidden');
-      populateUserDropdown(); // Populate users each time form is shown
+      populateUserDropdown();
     });
 
     cancelBtn.addEventListener('click', () => {
@@ -123,30 +115,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     projectForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      // Grab form values
+
       const name = (document.getElementById('projectName') as HTMLInputElement).value;
       const assigneeId = (document.getElementById('projectAssignee') as HTMLSelectElement).value;
       const status = (document.getElementById('projectStatus') as HTMLSelectElement).value;
 
-      // Call your backend function or handler to save the project
       console.log({ name, assigneeId, status });
 
-      // After saving, hide the form and reset
       formContainer.classList.add('hidden');
       projectForm.reset();
     });
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-  populateUserDropdown();      // ← call here
-  fetchAndRenderProjects();    // if already implemented
+  populateUserDropdown();      
+  fetchAndRenderProjects();    
 });
 
 });
 
-// When creating a project, do NOT include status in the payload
 document.addEventListener('DOMContentLoaded', () => {
-  // ...other initializations...
 
   const projectForm = document.getElementById("projectForm") as HTMLFormElement;
   if (projectForm) {
@@ -167,13 +155,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const endDateValue = endDateInput.value;
 
-      // Validate endDate
       if (!endDateValue) {
         alert("End date is required.");
         endDateInput.focus();
         return;
       }
-      // Convert to ISO 8601 string
       const endDateISO = new Date(endDateValue).toISOString();
 
       const payload: Record<string, any> = {
@@ -206,12 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (projectFormContainer) {
         projectFormContainer.classList.add("hidden");
       }
-      fetchProjects(); // Refresh project table
+      fetchProjects(); 
     });
   }
 });
 
-// Fetch users with USER role and populate the dropdown
 async function populateUserDropdown(): Promise<void> {
   const select = document.getElementById("projectAssignee") as HTMLSelectElement;
   if (!select) return;
@@ -227,7 +212,6 @@ async function populateUserDropdown(): Promise<void> {
 }
 
 
-// Fetch projects
 async function fetchProjects(): Promise<void> {
   const token = localStorage.getItem('token');
   
@@ -250,7 +234,6 @@ async function fetchProjects(): Promise<void> {
   }
 }
 
-// Render users table (view only)
 function renderUsers(): void {
   const tbody = document.querySelector('#usersTable tbody');
   if (!tbody) return;
@@ -279,7 +262,6 @@ function renderUsers(): void {
   });
 }
 
-// Render projects table with user assignment dropdown
 function renderProjects(): void {
   const tbody = document.querySelector('#projectsTable tbody');
   if (!tbody) return;
@@ -315,7 +297,6 @@ function renderProjects(): void {
     `;
     tbody.appendChild(tr);
 
-    // Add change event listener to the select
     const select = tr.querySelector('.user-assign-select') as HTMLSelectElement;
     select?.addEventListener('change', (e) => {
       const userId = (e.target as HTMLSelectElement).value;
@@ -343,7 +324,6 @@ async function populateUserOptions() {
 }
 
 
-// Update dashboard stats
 function updateStats(): void {
   const totalUsersEl = document.getElementById('totalUsers');
   const totalProjectsEl = document.getElementById('totalProjects');
@@ -356,13 +336,12 @@ function updateStats(): void {
   }
 }
 
-// Assign project to user
 async function assignProject(projectId: string, userId: string): Promise<void> {
   const token = localStorage.getItem('token');
   if (!token) return;
   
   try {
-    // Using PUT endpoint as shown in project.http
+
     const response = await fetch(`http://localhost:3000/projects/${projectId}`, {
       method: 'PUT',
       headers: {
@@ -379,7 +358,7 @@ async function assignProject(projectId: string, userId: string): Promise<void> {
       throw new Error(data.message || 'Failed to assign project');
     }
 
-    await fetchProjects(); // Refresh projects list
+    await fetchProjects(); 
     alert(data.message || (userId ? 'Project assigned successfully' : 'Project unassigned successfully'));
 
   } catch (error) {
@@ -388,7 +367,6 @@ async function assignProject(projectId: string, userId: string): Promise<void> {
   }
 }
 
-// Render navigation
 function renderNavigation(): void {
   const nav = document.querySelector('.sidebar-nav ul');
   if (!nav) return;
@@ -402,7 +380,6 @@ function renderNavigation(): void {
     </li>
   `).join('');
 
-  // Add event listeners
   document.querySelectorAll('.sidebar-nav a').forEach(link => {
     link.addEventListener('click', handleNavigation);
   });
@@ -415,19 +392,15 @@ function handleNavigation(e: Event): void {
 
   if (!sectionId || !document.getElementById(sectionId)) return;
 
-  // Update URL
   window.history.pushState({}, '', `#${sectionId}`);
 
-  // Update active nav link
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
   link.classList.add('active');
 
-  // Toggle section visibility
   document.querySelectorAll('.dashboard-section').forEach(section => {
     section.classList.toggle('active', section.id === sectionId);
   });
 
-  // Fetch data if needed
   switch (sectionId) {
     case 'users':
       fetchUsers();
@@ -441,11 +414,9 @@ function handleNavigation(e: Event): void {
   }
 }
 
-// Initialize navigation after DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   renderNavigation();
 
-  // Optional: navigate to current hash on page load
   const currentHash = window.location.hash.replace('#', '') || 'overview';
   const defaultLink = document.querySelector(`.sidebar-nav a[data-section="${currentHash}"]`);
   if (defaultLink) {
@@ -454,12 +425,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// Load admin settings
 async function loadAdminSettings(): Promise<void> {
   if (!adminProfile) return;
 
   try {
-    // Populate form fields
+
     const nameInput = document.getElementById('adminFullName') as HTMLInputElement;
     const emailInput = document.getElementById('adminEmailInput') as HTMLInputElement;
 
@@ -468,7 +438,6 @@ async function loadAdminSettings(): Promise<void> {
       emailInput.value = adminProfile.email;
     }
 
-    // Add form submission handler if not already added
     const form = document.getElementById('adminSettingsForm') as HTMLFormElement;
     if (form && !form.dataset.handlerAdded) {
       form.addEventListener('submit', handleSettingsSubmit);
@@ -480,7 +449,6 @@ async function loadAdminSettings(): Promise<void> {
   }
 }
 
-// Handle settings form submission
 async function handleSettingsSubmit(e: Event): Promise<void> {
   e.preventDefault();
   
@@ -522,11 +490,9 @@ async function handleSettingsSubmit(e: Event): Promise<void> {
 
     alert('Settings updated successfully');
     
-    // Clear password fields
     currentPasswordInput.value = '';
     newPasswordInput.value = '';
 
-    // Refresh admin profile
     await fetchAdminProfile();
 
   } catch (error) {
@@ -535,7 +501,6 @@ async function handleSettingsSubmit(e: Event): Promise<void> {
   }
 }
 
-// Handle profile image upload
 async function handleProfileImageUpload(file: File): Promise<void> {
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('userId');
@@ -559,7 +524,6 @@ async function handleProfileImageUpload(file: File): Promise<void> {
     if (adminProfile && data.data.profileImage) {
       adminProfile.profileImage = data.data.profileImage;
       
-      // Update UI
       const profileImageElement = document.querySelector('.profile-image') as HTMLImageElement;
       if (profileImageElement) {
         profileImageElement.src = adminProfile.profileImage || './assets/images/default-avatar.png';
@@ -572,7 +536,6 @@ async function handleProfileImageUpload(file: File): Promise<void> {
   }
 }
 
-// Setup profile image upload
 function setupProfileImageUpload(): void {
   const imageInput = document.createElement('input');
   imageInput.type = 'file';
@@ -587,7 +550,6 @@ function setupProfileImageUpload(): void {
     }
   });
 
-  // Add click handler to profile image when it's created
   document.addEventListener('click', (e) => {
     if ((e.target as HTMLElement).classList.contains('profile-image')) {
       imageInput.click();
@@ -595,7 +557,6 @@ function setupProfileImageUpload(): void {
   });
 }
 
-// Handle logout
 function handleLogout(): void {
   localStorage.removeItem('token');
   localStorage.removeItem('userId');
@@ -604,7 +565,6 @@ function handleLogout(): void {
   window.location.href = 'auth.html';
 }
 
-// Global functions for onclick handlers
 (window as any).viewUserProjects = function(userId: string): void {
   const userProjects = projects.filter(p => p.assignee?.id === userId);
   const user = users.find(u => u.id === userId);
@@ -620,7 +580,7 @@ function handleLogout(): void {
   if (project) {
     const newName = prompt('Enter new project name:', project.name);
     if (newName && newName !== project.name) {
-      // Add API call to update project name
+
       console.log('Update project name:', projectId, newName);
     }
   }
@@ -650,7 +610,6 @@ function handleLogout(): void {
   }
 };
 
-// Initialize application
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
   renderNavigation();
@@ -659,20 +618,17 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchProjects();
   setupProfileImageUpload();
 
-  // Add logout handler
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', handleLogout);
   }
 
-  // Load section based on URL hash
   const hash = window.location.hash.slice(1) || 'overview';
   const link = document.querySelector(`[data-section="${hash}"]`) as HTMLAnchorElement;
   if (link) {
     link.click();
   }
 
-  // Setup add project modal
   const addProjectBtn = document.getElementById('addProjectBtn');
   const addProjectModal = document.getElementById('addProjectModal');
   const closeModal = addProjectModal?.querySelector('.close');
