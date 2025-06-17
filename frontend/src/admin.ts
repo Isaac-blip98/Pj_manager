@@ -359,25 +359,32 @@ function updateStats(): void {
 // Assign project to user
 async function assignProject(projectId: string, userId: string): Promise<void> {
   const token = localStorage.getItem('token');
+  if (!token) return;
   
   try {
-    const response = await fetch(`http://localhost:3000/projects/${projectId}/assign`, {
-      method: 'PATCH',
+    // Using PUT endpoint as shown in project.http
+    const response = await fetch(`http://localhost:3000/projects/${projectId}`, {
+      method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ userId: userId || null })
+      body: JSON.stringify({ 
+        assigneeId: userId || null 
+      })
     });
 
-    if (!response.ok) throw new Error('Failed to assign project');
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to assign project');
+    }
 
-    await fetchProjects(); 
-    alert(userId ? 'Project assigned successfully' : 'Project unassigned successfully');
+    await fetchProjects(); // Refresh projects list
+    alert(data.message || (userId ? 'Project assigned successfully' : 'Project unassigned successfully'));
 
   } catch (error) {
     console.error('Error assigning project:', error);
-    alert('Failed to assign project');
+    alert(error instanceof Error ? error.message : 'Failed to assign project');
   }
 }
 

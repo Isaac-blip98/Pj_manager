@@ -131,23 +131,34 @@ async function renderFilteredProjects(): Promise<void> {
 // Mark project as completed
 async function markProjectAsCompleted(projectId: string): Promise<void> {
   const token = localStorage.getItem('token');
-  if (!token) return;
+  const userId = localStorage.getItem('userId');
+  if (!token || !userId) {
+    alert('Please log in again');
+    window.location.href = 'auth.html';
+    return;
+  }
 
   try {
-    const res = await fetch(`http://localhost:3000/projects/${projectId}/complete`, {
+    const response = await fetch(`http://localhost:3000/projects/${projectId}/complete`, {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
     });
-    const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.message || 'Failed to complete project');
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to complete project');
     }
-  } catch (err: any) {
-    alert('Failed to complete project');
+
+    // Success message and UI update
+    alert('Project marked as completed! Admin has been notified.');
+    await renderFilteredProjects(); // Refresh the projects list
+
+  } catch (error) {
+    console.error('Error completing project:', error);
+    alert(error instanceof Error ? error.message : 'Failed to complete project');
   }
 }
 
