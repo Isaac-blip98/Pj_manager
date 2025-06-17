@@ -1,4 +1,4 @@
-import type { User, Project, AdminProfile } from './types';
+import  { User, Project, AdminProfile } from './types';
 
 // Initialize admin data
 let adminProfile: AdminProfile | null = null;

@@ -10,7 +10,7 @@ import { EmailService } from '../email/email.service';
 import { CreateProjectDto } from './dto/create-project-dto';
 import { UpdateProjectDto } from './dto/update-project-dto';
 import { ProjectResponseDto } from './dto/project-response-dto';
-import { UserRole, ProjectStatus, EmailStatus, Project } from '@prisma/client';
+import { UserRole, ProjectStatus, EmailStatus } from '@prisma/client';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
 
 @Injectable()
@@ -70,7 +70,9 @@ export class ProjectsService {
     }
   }
 
-  async getUserProject(userId: string): Promise<ApiResponse<ProjectResponseDto | null>> {
+  async getUserProject(
+    userId: string,
+  ): Promise<ApiResponse<ProjectResponseDto | null>> {
     const project = await this.prisma.project.findFirst({
       where: {
         assigneeId: userId,
@@ -458,10 +460,12 @@ export class ProjectsService {
     }
   }
 
-  async getAllUserProjects(userId: string): Promise<ApiResponse<ProjectResponseDto[]>> {
+  async getAllUserProjects(
+    userId: string,
+  ): Promise<ApiResponse<ProjectResponseDto[]>> {
     const projects = await this.prisma.project.findMany({
       where: { assigneeId: userId },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
     return {
       success: true,

@@ -21,6 +21,18 @@ interface RegisterDto {
   name: string;
   email: string;
   password: string;
+ 
+}
+
+interface RegisterResponse {
+  id: string;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'USER';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  profileImage: string | null;
 }
 
 interface LoginDto {
@@ -69,28 +81,25 @@ if (registerForm) {
         body: JSON.stringify(payload),
       });
 
-      const responseData: ApiResponse<LoginResponse> = await res.json();
+      const responseData: ApiResponse<RegisterResponse> = await res.json();
 
       if (!res.ok) {
         throw new Error(responseData.message || 'Registration failed');
       }
 
-      if (!responseData.data) {
-        throw new Error('Invalid response format');
-      }
+      // Clear the form
+      registerForm.reset();
 
-      const { access_token, user } = responseData.data;
+      // Show success message
+      const successMessage = document.createElement('p');
+      successMessage.className = 'success-message';
+      successMessage.textContent = 'Registration successful! Please login to continue.';
+      registerForm.insertBefore(successMessage, registerForm.firstChild);
 
-      // Store login info and redirect
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('role', user.role);
-      localStorage.setItem('userId', user.id);
-      localStorage.setItem('userEmail', user.email);
-
-      if (user.role === 'ADMIN') {
-        window.location.href = 'admin.html';
-      } else {
-        window.location.href = 'user.html';
+      // Switch to login tab
+      const loginTab = document.querySelector('[data-tab="login"]') as HTMLButtonElement;
+      if (loginTab) {
+        loginTab.click();
       }
     } catch (error: any) {
       console.error('Registration error:', error);
